@@ -13,10 +13,22 @@
   "keywords": [
     "JavaScript"
   ],
-  "author": "Leonard Nguyen",
+  "author": "Leonard",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/nntoanbkit/wizer/issues"
   },
-  "homepage": "https://github.com/nntoanbkit/wizer#readme"
+  "homepage": "https://github.com/nntoanbkit/wizer#readme",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.13.9",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-clear-screen-reporter": "0.0.1",
+    "karma-growl-reporter": "^0.1.1",
+    "karma-jasmine": "^0.3.6",
+    "karma-mocha-reporter": "^1.1.1",
+    "karma-phantomjs-launcher": "^0.2.1",
+    "phantomjs": "^1.9.18"
+  }
 }
