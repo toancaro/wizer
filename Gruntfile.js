@@ -2,7 +2,14 @@ module.exports = function (grunt) {
     require("load-grunt-tasks")(grunt);
 
     grunt.initConfig({
+        pkg: grunt.file.readJSON("package.json"),
         concat: {
+            options: {
+                banner: "/**\n" +
+                        " * <%= pkg.name %> <%= pkg.version %>\n" +
+                        " * <%= grunt.template.today('yyyy-mm-dd') %>\n" +
+                        " */\n"
+            },
             build: {
                 files: [{
                     dest: "dist/wizer.js",
@@ -18,7 +25,8 @@ module.exports = function (grunt) {
         },
         uglify: {
             options: {
-                sourceMap: true
+                sourceMap: true,
+                banner: '/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %> */'
             },
             build: {
                 files: [
