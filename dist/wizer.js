@@ -1,5 +1,5 @@
 /**
- * wizer 0.1
+ * wizer 0.1.1
  * 2015-10-30
  */
 (function (angular) {
