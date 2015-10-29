@@ -41,7 +41,6 @@ var wizer = (function (wizer, _) {
         });
 
         var ctor = function () {
-            //this.__proto__.$super = proto.__proto__;
             proto.init.apply(this, _.slice(arguments));
         };
         ctor.prototype = proto;

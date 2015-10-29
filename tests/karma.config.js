@@ -2,6 +2,36 @@
 // Generated on Thu Sep 03 2015 14:27:53 GMT+0700 (SE Asia Standard Time)
 
 module.exports = function (config) {
+    var useMinified = true;
+
+    var files = function () {
+        var _files = [];
+
+        _files = _files.concat([
+            "bower_components/lodash/lodash.js",
+            "bower_components/jquery/dist/jquery.js",
+            "bower_components/angular/angular.js",
+            "bower_components/angular-mocks/angular-mocks.js"
+        ]);
+
+        if (useMinified) {
+            _files.push("dist/wizer.min.js");
+        } else {
+            _files = _files.concat([
+                "scripts/angular/bootstrap.js",
+                "scripts/Class.js",
+                "scripts/sharepoint/SPList.js",
+                "scripts/sharepoint/SPDocumentLibrary.js",
+                "scripts/**/*.js"
+            ]);
+        }
+
+        _files.push("tests/testUtilities.js");
+        _files.push("tests/unit/**/*.spec.js");
+
+        return _files;
+    }();
+
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -14,13 +44,7 @@ module.exports = function (config) {
 
 
         // list of files / patterns to load in the browser
-        files: [
-            "bower_components/lodash/lodash.js",
-            "bower_components/angular/angular.js",
-            "bower_components/angular-mocks/angular-mocks.js",
-            "scripts/**/*.js",
-            "tests/**/*.spec.js"
-        ],
+        files: files,
 
 
         // list of files to exclude
@@ -62,6 +86,10 @@ module.exports = function (config) {
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits
-        singleRun: false
+        singleRun: false,
+
+        mochaReporter: {
+            ignoreSkipped: true
+        }
     })
 };
