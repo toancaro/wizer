@@ -17,7 +17,7 @@ Several quick start options are available:
 
 ## Installation
 
-* Download [development unminified version](http://example.com) or [production minified version](http://example.com)
+* Download [development unminified version](https://raw.githubusercontent.com/nntoanbkit/wizer/master/dist/wizer.js) or [production minified version](https://raw.githubusercontent.com/nntoanbkit/wizer/master/dist/wizer.min.js)
 * Add these scripts to your `index.html`
   ````html
   <!-- wizer depends on lodash and jQuery -->
