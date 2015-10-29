@@ -197,6 +197,3 @@ FakesAssemblies/
 
 # WebStorm
 .idea/
-
-# Distribution
-dist/
