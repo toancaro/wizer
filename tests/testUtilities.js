@@ -6,12 +6,12 @@ var testUtils = function (testUtils, _, $) {
 
         return new RegExp(regexStr);
     };
-    testUtils.listItemPostData = function (listName, itemToPost) {
+    testUtils.listItemPostData = function (listName, itemToPost, updatingItem) {
         return _.chain({}).extend(itemToPost, {
             "__metadata": {
-                "type": "SP.Data." + listName + "Item"
+                "type": "SP.Data." + listName + "ListItem"
             }
-        }).omit([
+        }).omit(updatingItem ? "" : [
             "Id",
             "ID"
         ]).value();

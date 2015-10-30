@@ -27,6 +27,9 @@
                     },
                     create: function (item, httpConfigs) {
                         return this.dataSource().add(item, httpConfigs);
+                    },
+                    update: function (item, httpConfigs) {
+                        return this.dataSource().update(item, httpConfigs);
                     }
                 });
             }
