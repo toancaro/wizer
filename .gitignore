@@ -197,3 +197,10 @@ FakesAssemblies/
 
 # WebStorm
 .idea/
+
+# Visual Studio
+Fx.Core.Client.csproj
+Properties/AssemblyInfo.cs
+Web.Debug.config
+Web.Release.config
+Web.config
