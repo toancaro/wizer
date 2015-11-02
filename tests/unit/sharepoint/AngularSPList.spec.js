@@ -84,6 +84,26 @@
                 $httpBackend.flush();
             });
         });
+        describe("when remove single item", function() {
+            it("should remove successful", function() {
+                testUtils.updateFormDigest(digestValue);
+                list.remove(itemId);
+
+                $httpBackend.expect("POST", function (url) {
+                    return testUtils.listItemRegex(siteUrl, listName, itemId).test(url);
+                }, function (data) {
+                    return data === undefined;
+                }, function (headers) {
+                    return _.isEqual(headers, {
+                        "accept": "application/json;odata=verbose",
+                        "X-RequestDigest": digestValue,
+                        "IF-MATCH": "*",
+                        "X-HTTP-Method": "DELETE"
+                    });
+                });
+                $httpBackend.flush();
+            });
+        });
 
         afterEach(function () {
             $httpBackend.verifyNoOutstandingExpectation();
