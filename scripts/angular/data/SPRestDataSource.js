@@ -34,6 +34,16 @@
                                 "X-HTTP-Method": "MERGE"
                             }
                         }
+                    },
+                    remove: function() {
+                        return {
+                            headers: {
+                                "accept": "application/json;odata=verbose",
+                                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                "IF-MATCH": "*",
+                                "X-HTTP-Method": "DELETE"
+                            }
+                        }
                     }
                 };
                 var convertPostData = function (listName, itemToPost, updatingItem) {
@@ -77,6 +87,13 @@
                                 this.getItemUrl(itemId),
                                 convertPostData(this.$configs.listName, options.item, true),
                                 _.extendClone(httpConfigs.update(), options.httpConfigs)
+                            );
+                        },
+                        remove: function(options) {
+                            return $http.post(
+                                this.getItemUrl(options.itemId),
+                                undefined,
+                                _.extendClone(httpConfigs.remove(), options.httpConfigs)
                             );
                         }
                     },
