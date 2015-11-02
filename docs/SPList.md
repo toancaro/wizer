@@ -1,5 +1,15 @@
 # SPList class
-Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances use SharePoint REST service to interact with the real list on the web site. 
+Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances use SharePoint REST service to interact with the real list on the web site.
+ 
+## Table of contents
+
+- [Usage](#usage)
+- [Configurations](#configurations)
+- [Instance methods](#instance-methods)
+    - [get](#getitemid-httpconfigs)
+    - [create](#createitem-httpconfigs)
+    - [update](#updateitem-httpconfigs)
+    - [remove](#removeitemid-httpconfigs)
 
 ## Usage
 
