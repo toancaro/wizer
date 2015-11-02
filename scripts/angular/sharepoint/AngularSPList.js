@@ -30,6 +30,9 @@
                     },
                     update: function (item, httpConfigs) {
                         return this.dataSource().update(item, httpConfigs);
+                    },
+                    remove: function (itemId, httpConfigs) {
+                        return this.dataSource().remove(itemId, httpConfigs);
                     }
                 });
             }

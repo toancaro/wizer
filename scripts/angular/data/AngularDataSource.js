@@ -43,6 +43,17 @@
                                 httpConfigs: httpConfigs
                             }));
                         }
+                    },
+                    remove: function (itemId, httpConfigs) {
+                        var removeConfigs = _.get(this, "transport.remove");
+                        if (!removeConfigs) return $q.reject("No remove transport configurations");
+
+                        if (_.isFunction(removeConfigs)) {
+                            return $q.when(removeConfigs.call(this, {
+                                itemId: itemId,
+                                httpConfigs: httpConfigs
+                            }));
+                        }
                     }
                 });
             }
