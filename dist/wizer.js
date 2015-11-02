@@ -1,6 +1,6 @@
 /**
- * wizer 0.1.1
- * 2015-10-30
+ * wizer 0.2
+ * 2015-11-02
  */
 (function (angular) {
     "use strict";
@@ -237,6 +237,28 @@ wizer.sharepoint = function(sharepoint){
                                 httpConfigs: httpConfigs
                             }));
                         }
+                    },
+                    update: function (item, httpConfigs) {
+                        var updateConfigs = _.get(this, "transport.update");
+                        if (!updateConfigs) return $q.reject("No update transport configurations");
+
+                        if (_.isFunction(updateConfigs)) {
+                            return $q.when(updateConfigs.call(this, {
+                                item: item,
+                                httpConfigs: httpConfigs
+                            }));
+                        }
+                    },
+                    remove: function (itemId, httpConfigs) {
+                        var removeConfigs = _.get(this, "transport.remove");
+                        if (!removeConfigs) return $q.reject("No remove transport configurations");
+
+                        if (_.isFunction(removeConfigs)) {
+                            return $q.when(removeConfigs.call(this, {
+                                itemId: itemId,
+                                httpConfigs: httpConfigs
+                            }));
+                        }
                     }
                 });
             }
@@ -268,14 +290,35 @@ wizer.sharepoint = function(sharepoint){
                                 accept: "application/json;odata=verbose"
                             }
                         }
+                    },
+                    update: function() {
+                        return {
+                            headers: {
+                                "accept": "application/json;odata=verbose",
+                                "content-type": "application/json;odata=verbose",
+                                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                "IF-MATCH": "*",
+                                "X-HTTP-Method": "MERGE"
+                            }
+                        }
+                    },
+                    remove: function() {
+                        return {
+                            headers: {
+                                "accept": "application/json;odata=verbose",
+                                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                "IF-MATCH": "*",
+                                "X-HTTP-Method": "DELETE"
+                            }
+                        }
                     }
                 };
-                var convertPostData = function (listName, itemToPost) {
+                var convertPostData = function (listName, itemToPost, updatingItem) {
                     return _.chain({}).extend(itemToPost, {
                         "__metadata": {
-                            "type": "SP.Data." + listName + "Item"
+                            "type": "SP.Data." + listName + "ListItem"
                         }
-                    }).omit([
+                    }).omit(updatingItem ? "" : [
                         "Id",
                         "ID"
                     ]).value();
@@ -293,12 +336,32 @@ wizer.sharepoint = function(sharepoint){
                             return $http.post(
                                 this.getItemUrl(),
                                 convertPostData(this.$configs.listName, options.item),
-                                _.extendClone(httpConfigs.create(), options.httpConfigs));
+                                _.extendClone(httpConfigs.create(), options.httpConfigs)
+                            );
                         },
                         read: function(options) {
                             return $http.get(
                                 this.getItemUrl(options.itemId),
-                                _.extendClone(httpConfigs.get(), options.httpConfigs));
+                                _.extendClone(httpConfigs.get(), options.httpConfigs)
+                            );
+                        },
+                        update: function (options) {
+                            var itemId = _.get(options, "item.Id");
+                            if (!(itemId > 0))
+                                return $q.reject(String.format("Invalid itemId. Expect positive interger, but get {0}", itemId));
+
+                            return $http.post(
+                                this.getItemUrl(itemId),
+                                convertPostData(this.$configs.listName, options.item, true),
+                                _.extendClone(httpConfigs.update(), options.httpConfigs)
+                            );
+                        },
+                        remove: function(options) {
+                            return $http.post(
+                                this.getItemUrl(options.itemId),
+                                undefined,
+                                _.extendClone(httpConfigs.remove(), options.httpConfigs)
+                            );
                         }
                     },
 
@@ -355,6 +418,12 @@ wizer.sharepoint = function(sharepoint){
                     },
                     create: function (item, httpConfigs) {
                         return this.dataSource().add(item, httpConfigs);
+                    },
+                    update: function (item, httpConfigs) {
+                        return this.dataSource().update(item, httpConfigs);
+                    },
+                    remove: function (itemId, httpConfigs) {
+                        return this.dataSource().remove(itemId, httpConfigs);
                     }
                 });
             }
