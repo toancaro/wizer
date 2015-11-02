@@ -1,6 +1,6 @@
 (function (testUtils, _) {
 
-    describe("SPList Service", function () {
+    fdescribe("SPList Service", function () {
         var siteUrl = "dev.fxp.net/rbs", listName = "Reservations", itemId = 1001,
             newItem = {testProp: "testProp"}, digestValue = "abcdefghijlkm";
         var $httpBackend, $$SPList, list;
@@ -43,7 +43,6 @@
                 $httpBackend.flush();
             });
         });
-
         describe("when create single item", function () {
             it("should create successful", function () {
                 testUtils.updateFormDigest(digestValue);
@@ -58,6 +57,28 @@
                         "accept": "application/json;odata=verbose",
                         "content-type": "application/json;odata=verbose",
                         "X-RequestDigest": digestValue
+                    });
+                });
+                $httpBackend.flush();
+            });
+        });
+        describe("when update single item", function () {
+            it("should update successful", function () {
+                testUtils.updateFormDigest(digestValue);
+                var updatingItem = _.extendClone(newItem, {Id: itemId});
+                list.update(updatingItem);
+
+                $httpBackend.expect("POST", function (url) {
+                    return testUtils.listItemRegex(siteUrl, listName, itemId).test(url);
+                }, function (data) {
+                    return _.isEqual(JSON.parse(data), testUtils.listItemPostData(listName, updatingItem, true));
+                }, function (headers) {
+                    return _.isEqual(headers, {
+                        "accept": "application/json;odata=verbose",
+                        "content-type": "application/json;odata=verbose",
+                        "X-RequestDigest": digestValue,
+                        "IF-MATCH": "*",
+                        "X-HTTP-Method": "MERGE"
                     });
                 });
                 $httpBackend.flush();

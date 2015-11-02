@@ -32,6 +32,17 @@
                                 httpConfigs: httpConfigs
                             }));
                         }
+                    },
+                    update: function (item, httpConfigs) {
+                        var updateConfigs = _.get(this, "transport.update");
+                        if (!updateConfigs) return $q.reject("No update transport configurations");
+
+                        if (_.isFunction(updateConfigs)) {
+                            return $q.when(updateConfigs.call(this, {
+                                item: item,
+                                httpConfigs: httpConfigs
+                            }));
+                        }
                     }
                 });
             }
