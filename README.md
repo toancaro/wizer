@@ -11,7 +11,7 @@ wizer is a powerful front-end JavaScript library for faster and easier AngularJS
 
 Several quick start options are available:
 
-* [Documentation](https://github.com/nntoanbkit/wizer/blob/feature/documents/documents/SPList.md)
+* [Documentation](https://github.com/nntoanbkit/wizer/blob/master/docs/SPList.md)
 
 ## Installation
 
