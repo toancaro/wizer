@@ -20,6 +20,7 @@ module.exports = function (config) {
             _files = _files.concat([
                 "scripts/angular/bootstrap.js",
                 "scripts/Class.js",
+                "scripts/utils/ArgsParser.js",
                 "scripts/sharepoint/SPList.js",
                 "scripts/sharepoint/SPDocumentLibrary.js",
                 "scripts/**/*.js"

@@ -16,6 +16,7 @@ module.exports = function (grunt) {
                     src: [
                         "scripts/angular/bootstrap.js",
                         "scripts/Class.js",
+                        "scripts/utils/ArgsParser.js",
                         "scripts/sharepoint/SPList.js",
                         "scripts/sharepoint/SPDocumentLibrary.js",
                         "scripts/**/*.js"
@@ -26,7 +27,7 @@ module.exports = function (grunt) {
         uglify: {
             options: {
                 sourceMap: true,
-                banner: '/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %> */'
+                banner: "/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */"
             },
             build: {
                 files: [

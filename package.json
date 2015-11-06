@@ -1,6 +1,6 @@
 {
   "name": "wizer",
-  "version": "0.2",
+  "version": "0.2.0",
   "description": "JavaScript libary",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,9 @@
     "karma": "^0.13.9",
     "karma-chrome-launcher": "^0.2.0",
     "karma-clear-screen-reporter": "0.0.1",
+    "karma-firefox-launcher": "^0.1.6",
     "karma-growl-reporter": "^0.1.1",
+    "karma-ie-launcher": "^0.2.0",
     "karma-jasmine": "^0.3.6",
     "karma-mocha-reporter": "^1.1.1",
     "karma-phantomjs-launcher": "^0.2.1",
