@@ -40,63 +40,12 @@ wizer.data = function (data, _, undefined) {
                 parse: function (response) {
                     return response;
                 }
-            },
-            /**
-             * Configurations to work with remote resources.
-             */
-            transport: {
-                /**
-                 * Configurations for creating new item(s).
-                 */
-                create: {},
-                /**
-                 * Configurations for reading item(s) from resources.
-                 */
-                read: {},
-                /**
-                 * Configurations for updating existing item(s).
-                 */
-                update: {},
-                /**
-                 * Configurations for deleting existing item(s).
-                 */
-                remove: {}
             }
         });
         if (configs.data) configs.data = _.clone(configs.data);
 
         this.$configs = configs;
     };
-
-    //<editor-fold desc="CRUD">
-    /**
-     * Add an item to this data source.
-     * The `id` property of item will be ignored if presence.
-     * @param item
-     */
-    dataSourceConfigs.add = function (item) {
-        if (this.$configs.data) return this.$configs.data.push(item);
-    };
-    /**
-     * Get item from data source with specified `id`.
-     * @param id
-     */
-    dataSourceConfigs.get = function (id) {
-    };
-    /**
-     * Update an existing item in data source.
-     * The `id` property must be presence in `item`.
-     * @param item
-     */
-    dataSourceConfigs.update = function (item) {
-    };
-    /**
-     * Delete an item with specified `id`.
-     * @param id
-     */
-    dataSourceConfigs.remove = function (id) {
-    };
-    //</editor-fold>
 
     // Utils
     /**
@@ -105,19 +54,6 @@ wizer.data = function (data, _, undefined) {
      */
     dataSourceConfigs.data = function () {
         if (this.$configs.data) return this.$configs.data;
-    };
-
-    // Abstracts.
-    /**
-     * Send request to remote resources.
-     * @param data
-     * @param params
-     * @param headers
-     * @param method
-     * @param url
-     */
-    dataSourceConfigs.sendRequest = function (data, params, headers, method, url) {
-        throw new Error("Sub class must implement this method.");
     };
 
     /**
