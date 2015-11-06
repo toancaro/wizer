@@ -1,15 +1,15 @@
 (function (testUtils, _) {
 
-    fdescribe("SPList Service", function () {
-        var siteUrl = "dev.fxp.net/rbs", listName = "Reservations", itemId = 1001,
+    describe("SPList Service", function () {
+        var siteUrl = "http://dev.fxp.net/rbs", listName = "Reservations", itemId = 1001,
             newItem = {testProp: "testProp"}, digestValue = "abcdefghijlkm";
-        var $httpBackend, $$SPList, list;
+        var $httpBackend, $SPList, list;
 
         beforeEach(module("wizer.sharepoint"));
         beforeEach(inject(function ($injector) {
             $httpBackend = $injector.get("$httpBackend");
-            $$SPList = $injector.get("$$SPList");
-            list = new $$SPList({
+            $SPList = $injector.get("$SPList");
+            list = new $SPList({
                 siteUrl: siteUrl,
                 listName: listName
             });
@@ -20,7 +20,7 @@
         });
 
         it("should be defined in `wizer.sharepoint` module", function () {
-            expect($$SPList).toBeDefined();
+            expect($SPList).toBeDefined();
             expect(list).toBeDefined();
         });
 

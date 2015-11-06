@@ -1,7 +1,7 @@
 var testUtils = function (testUtils, _, $) {
 
     testUtils.listItemRegex = function (siteUrl, listName, itemId) {
-        var regexStr = String.format("http://{0}/_api/lists/getByTitle\\('{1}'\\)/items", siteUrl, listName);
+        var regexStr = String.format("{0}/_api/lists/getByTitle\\('{1}'\\)/items", siteUrl, listName);
         regexStr += (itemId > 0) ? String.format("\\({0}\\)", itemId) : "";
 
         return new RegExp(regexStr);

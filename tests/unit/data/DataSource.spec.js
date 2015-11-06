@@ -26,11 +26,11 @@
                 expect(allData.length).toEqual(data.length);
                 expect(allData).not.toBe(data);
             });
-            it("`add()` should add item to the end of data source", function () {
-                ds.add("new item");
-                expect(ds.data().length).toEqual(data.length + 1);
-                expect(_.last(ds.data())).toEqual("new item");
-            });
+            //it("`add()` should add item to the end of data source", function () {
+            //    ds.add("new item");
+            //    expect(ds.data().length).toEqual(data.length + 1);
+            //    expect(_.last(ds.data())).toEqual("new item");
+            //});
         });
     });
 
