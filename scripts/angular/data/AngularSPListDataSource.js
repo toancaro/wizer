@@ -9,45 +9,6 @@
         .factory("$SPListDataSource", [
             "$q", "$http", "$DataSource",
             function ($q, $http, $DataSource) {
-                var httpConfigs = {
-                    create: function () {
-                        return {
-                            headers: {
-                                "accept": "application/json;odata=verbose",
-                                "content-type": "application/json;odata=verbose",
-                                "X-RequestDigest": $("#__REQUESTDIGEST").val()
-                            }
-                        }
-                    },
-                    get: function () {
-                        return {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }
-                    },
-                    update: function() {
-                        return {
-                            headers: {
-                                "accept": "application/json;odata=verbose",
-                                "content-type": "application/json;odata=verbose",
-                                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
-                                "IF-MATCH": "*",
-                                "X-HTTP-Method": "MERGE"
-                            }
-                        }
-                    },
-                    remove: function() {
-                        return {
-                            headers: {
-                                "accept": "application/json;odata=verbose",
-                                "X-RequestDigest": $("#__REQUESTDIGEST").val(),
-                                "IF-MATCH": "*",
-                                "X-HTTP-Method": "DELETE"
-                            }
-                        }
-                    }
-                };
                 var convertPostData = function (listName, itemToPost, updatingItem) {
                     return _.chain({}).extend(itemToPost, {
                         "__metadata": {
@@ -58,7 +19,7 @@
                         "ID"
                     ]).value();
                 };
-                var dataSourceConfigs = function() {
+                var dataSourceConfigs = function () {
                     var dsConfigs = {};
 
                     // Constructor.
@@ -75,16 +36,16 @@
                         return $http.post(
                             this.$$getItemUrl(),
                             convertPostData(this.$$splist.$configs.listName, options.item),
-                            _.extendClone(httpConfigs.create(), options.httpConfigs)
+                            _.extendClone(this.$$defaultHttpConfigs().create(), options.httpConfigs)
                         );
                     });
                     /**
                      * Configs for getting item from the list.
                      */
-                    _.set(dsConfigs, "transport.read", function(options) {
+                    _.set(dsConfigs, "transport.read", function (options) {
                         return $http.get(
                             this.$$getItemUrl(options.itemId),
-                            _.extendClone(httpConfigs.get(), options.httpConfigs)
+                            _.mergeClone(this.$$defaultHttpConfigs().get(), options.httpConfigs)
                         );
                     });
                     /**
@@ -98,17 +59,17 @@
                         return $http.post(
                             this.$$getItemUrl(itemId),
                             convertPostData(this.$$splist.$configs.listName, options.item, true),
-                            _.extendClone(httpConfigs.update(), options.httpConfigs)
+                            _.extendClone(this.$$defaultHttpConfigs().update(), options.httpConfigs)
                         );
                     });
                     /**
                      * Configs for removing item from the list.
                      */
-                    _.set(dsConfigs, "transport.remove", function(options) {
+                    _.set(dsConfigs, "transport.remove", function (options) {
                         return $http.post(
                             this.$$getItemUrl(options.itemId),
                             undefined,
-                            _.extendClone(httpConfigs.remove(), options.httpConfigs)
+                            _.extendClone(this.$$defaultHttpConfigs().remove(), options.httpConfigs)
                         );
                     });
 
@@ -219,6 +180,62 @@
                         var transport = this.$$getTransport(transportName);
                         if (_.isFunction(transport)) {
                             return $q.when(transport.apply(this, _.rest(arguments)));
+                        }
+                    });
+                    /**
+                     * Get default `httpConfigs`.
+                     */
+                    _.set(dsConfigs, "$$defaultHttpConfigs", function () {
+                        var self = this;
+                        return {
+                            create: function () {
+                                return {
+                                    headers: {
+                                        "accept": "application/json;odata=verbose",
+                                        "content-type": "application/json;odata=verbose",
+                                        "X-RequestDigest": $("#__REQUESTDIGEST").val()
+                                    }
+                                }
+                            },
+                            get: function () {
+                                return _.extend(getQueryConfigs(), {
+                                    headers: {
+                                        accept: "application/json;odata=verbose"
+                                    }
+                                });
+                            },
+                            update: function () {
+                                return _.extend(getQueryConfigs(), {
+                                    headers: {
+                                        "accept": "application/json;odata=verbose",
+                                        "content-type": "application/json;odata=verbose",
+                                        "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                        "IF-MATCH": "*",
+                                        "X-HTTP-Method": "MERGE"
+                                    }
+                                });
+                            },
+                            remove: function () {
+                                return {
+                                    headers: {
+                                        "accept": "application/json;odata=verbose",
+                                        "X-RequestDigest": $("#__REQUESTDIGEST").val(),
+                                        "IF-MATCH": "*",
+                                        "X-HTTP-Method": "DELETE"
+                                    }
+                                }
+                            }
+                        };
+
+                        function getQueryConfigs() {
+                            var configs = {};
+
+                            if (_.any(self.$$splist.$configs.select))
+                                _.set(configs, "params.$select", self.$$splist.$configs.select.join(","));
+                            if (_.any(self.$$splist.$configs.expand))
+                                _.set(configs, "params.$expand", self.$$splist.$configs.expand.join(","));
+
+                            return configs;
                         }
                     });
 
