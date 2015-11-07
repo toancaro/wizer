@@ -33,44 +33,49 @@
                      * Configs for creating item to the list.
                      */
                     _.set(dsConfigs, "transport.create", function (options) {
-                        return $http.post(
-                            this.$$getItemUrl(),
-                            convertPostData(this.$$splist.$configs.listName, options.item),
-                            _.extendClone(this.$$defaultHttpConfigs().create(), options.httpConfigs)
-                        );
+                        var self = this;
+                        return $http
+                            .post(this.$$getItemUrl(), convertPostData(this.$$splist.$configs.listName, options.item), _.extendClone(this.$$defaultHttpConfigs().create(), options.httpConfigs))
+                            .then(function (data) {
+                                return self.get(_.get(data, "data.d.Id"), options.httpConfigs);
+                            });
                     });
                     /**
                      * Configs for getting item from the list.
                      */
                     _.set(dsConfigs, "transport.read", function (options) {
-                        return $http.get(
-                            this.$$getItemUrl(options.itemId),
-                            _.mergeClone(this.$$defaultHttpConfigs().get(), options.httpConfigs)
-                        );
+                        return $http
+                            .get(this.$$getItemUrl(options.itemId), _.mergeClone(this.$$defaultHttpConfigs().get(), options.httpConfigs))
+                            .then(function (data) {
+                                return _.get(data, "data.d" + (options.method === "getList" ? ".results" : ""));
+                            });
                     });
                     /**
                      * Configs for updating exsting item to the list.
                      */
                     _.set(dsConfigs, "transport.update", function (options) {
+                        var self = this;
+
                         var itemId = _.get(options, "item.Id");
                         if (!(itemId > 0))
                             return $q.reject(String.format("Invalid itemId. Expect positive interger, but get {0}", itemId));
 
-                        return $http.post(
-                            this.$$getItemUrl(itemId),
-                            convertPostData(this.$$splist.$configs.listName, options.item, true),
-                            _.extendClone(this.$$defaultHttpConfigs().update(), options.httpConfigs)
-                        );
+                        return $http
+                            .post(this.$$getItemUrl(itemId), convertPostData(this.$$splist.$configs.listName, options.item, true), _.extendClone(this.$$defaultHttpConfigs().update(), options.httpConfigs))
+                            // Because successful update will not return anything so that we have to get data manually.
+                            .then(function () {
+                                return self.get(itemId, options.httpConfigs);
+                            });
                     });
                     /**
                      * Configs for removing item from the list.
                      */
                     _.set(dsConfigs, "transport.remove", function (options) {
-                        return $http.post(
-                            this.$$getItemUrl(options.itemId),
-                            undefined,
-                            _.extendClone(this.$$defaultHttpConfigs().remove(), options.httpConfigs)
-                        );
+                        return $http
+                            .post(this.$$getItemUrl(options.itemId), undefined, _.extendClone(this.$$defaultHttpConfigs().remove(), options.httpConfigs))
+                            .then(function (data) {
+                                return data.data;   // should be nothing ("").
+                            });
                     });
 
                     // CRUD.
@@ -79,6 +84,7 @@
                      */
                     _.set(dsConfigs, "get", function (itemId, httpConfigs) {
                         return this.$$invokeTransport("read", {
+                            method: "get",
                             itemId: itemId,
                             httpConfigs: httpConfigs
                         });
@@ -96,6 +102,7 @@
                         }
 
                         return this.$$invokeTransport("read", {
+                            method: "getList",
                             httpConfigs: httpConfigs
                         });
                     });
@@ -103,43 +110,28 @@
                      * (item[, httpConfigs])
                      */
                     _.set(dsConfigs, "add", function (item, httpConfigs) {
-                        var createConfigs = _.get(this, "transport.create");
-                        if (!createConfigs) return $q.reject("No create transport configurations");
-
-                        if (_.isFunction(createConfigs)) {
-                            return $q.when(createConfigs.call(this, {
-                                item: item,
-                                httpConfigs: httpConfigs
-                            }));
-                        }
+                        return this.$$invokeTransport("create", {
+                            item: item,
+                            httpConfigs: httpConfigs
+                        });
                     });
                     /**
                      * (item[, httpConfigs])
                      */
                     _.set(dsConfigs, "update", function (item, httpConfigs) {
-                        var updateConfigs = _.get(this, "transport.update");
-                        if (!updateConfigs) return $q.reject("No update transport configurations");
-
-                        if (_.isFunction(updateConfigs)) {
-                            return $q.when(updateConfigs.call(this, {
-                                item: item,
-                                httpConfigs: httpConfigs
-                            }));
-                        }
+                        return this.$$invokeTransport("update", {
+                            item: item,
+                            httpConfigs: httpConfigs
+                        });
                     });
                     /**
                      * (itemId[, httpConfigs])
                      */
                     _.set(dsConfigs, "remove", function (itemId, httpConfigs) {
-                        var removeConfigs = _.get(this, "transport.remove");
-                        if (!removeConfigs) return $q.reject("No remove transport configurations");
-
-                        if (_.isFunction(removeConfigs)) {
-                            return $q.when(removeConfigs.call(this, {
-                                itemId: itemId,
-                                httpConfigs: httpConfigs
-                            }));
-                        }
+                        return this.$$invokeTransport("remove", {
+                            itemId: itemId,
+                            httpConfigs: httpConfigs
+                        });
                     });
 
                     // Utils
