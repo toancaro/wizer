@@ -97,8 +97,19 @@
                             {itemIds: "Array", httpConfigs: "Object"},
                             {httpConfigs: "Object"}
                         ]).parse(arguments);
-                        if (args.itemIds) {
+                        if (_.any(args.itemIds)) {
+                            httpConfigs = httpConfigs || {};
 
+                            var idQuery = _.reduce(args.itemIds, function (memo, id, index) {
+                                memo += String.format("(Id eq {0})", id);
+                                memo += (index < args.itemIds.length - 1) ? " or " : "";
+                                return memo;
+                            }, "");
+
+                            var filter = _.get(httpConfigs, "params.$filter", "");
+                            filter = (!!filter) ? String.format("({0}) and ({1})", filter, idQuery) : idQuery;
+
+                            _.set(httpConfigs, "params.$filter", filter);
                         }
 
                         return this.$$invokeTransport("read", {

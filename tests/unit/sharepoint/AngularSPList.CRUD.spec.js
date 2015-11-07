@@ -38,7 +38,7 @@
         });
 
         describe("when get single item", function () {
-            it("should get successful", function () {
+            it("should send valid request", function () {
                 list.get(itemId, {
                     params: {
                         test: 1
@@ -81,8 +81,28 @@
                 $httpBackend.flush();
             });
         });
+        describe("when get multiple item", function () {
+            it("should include `id query` in empty $filter", function  () {
+                list.getAll([1, 2]);
+                $httpBackend.expect("GET", function (url) {
+                    return _.contains(decodeURIComponent(url), "$filter=(Id+eq+1)+or+(Id+eq+2)")
+                });
+                $httpBackend.flush();
+            });
+            it("should include `id query` in NON empty $filter", function  () {
+                list.getAll([1, 2], {
+                    params: {
+                        $filter: "Test eq 1"
+                    }
+                });
+                $httpBackend.expect("GET", function (url) {
+                    return _.contains(decodeURIComponent(url), "$filter=(Test+eq+1)+and+((Id+eq+1)+or+(Id+eq+2))")
+                });
+                $httpBackend.flush();
+            });
+        });
         describe("when create single item", function () {
-            it("should create successful", function () {
+            it("should send valid request", function () {
                 testUtils.updateFormDigest(digestValue);
                 list.create(newItem);
 
@@ -109,7 +129,7 @@
             });
         });
         describe("when update single item", function () {
-            it("should update successful", function () {
+            it("should send valid request", function () {
                 testUtils.updateFormDigest(digestValue);
                 var updatingItem = _.extendClone(newItem, {Id: itemId});
                 list.update(updatingItem);
@@ -152,7 +172,7 @@
             });
         });
         describe("when remove single item", function () {
-            it("should remove successful", function () {
+            it("should send valid request", function () {
                 testUtils.updateFormDigest(digestValue);
                 list.remove(itemId);
 
@@ -171,7 +191,7 @@
                 $httpBackend.flush();
             });
             it("should NOT include default query", function () {
-                list.create(newItem);
+                list.remove(itemId);
 
                 $httpBackend.expect("POST", function (url) {
                     return !_.contains(decodeURIComponent(url), "$select=") && !_.contains(decodeURIComponent(url), "$expand=");
