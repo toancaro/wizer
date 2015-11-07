@@ -27,17 +27,28 @@ var testUtils = function (testUtils, _, $, global) {
     };
 
     global.describes = function (suites, fn) {
+        describesImpl(suites, fn, "describe");
+    };
+    global.fdescribes = function (suites, fn) {
+        describesImpl(suites, fn, "fdescribe");
+    };
+    global.xdescribes = function (suites, fn) {
+        describesImpl(suites, fn, "xdescribe");
+    };
+
+    function describesImpl(suites, fn, descName) {
         function recDesc (internal_suites) {
             if (!_.any(internal_suites)) {
                 return fn();
             } else {
-                return describe(internal_suites.shift(), function() {
+                return global[descName](internal_suites.shift(), function() {
                     recDesc(internal_suites);
                 });
             }
         }
         recDesc(suites);
-    };
+    }
+
 
     return testUtils;
 }(testUtils || {}, _, $, window);
