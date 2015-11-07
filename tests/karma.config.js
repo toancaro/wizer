@@ -2,7 +2,8 @@
 // Generated on Thu Sep 03 2015 14:27:53 GMT+0700 (SE Asia Standard Time)
 
 module.exports = function (config) {
-    var useMinified = false;
+    var useMinified = true;
+    var useTestApp = false;
 
     var files = function () {
         var _files = [];
@@ -27,8 +28,18 @@ module.exports = function (config) {
             ]);
         }
 
-        _files.push("tests/testUtilities.js");
+        _files.push("tests/utils/testUtilities.js");
         _files.push("tests/unit/**/*.spec.js");
+
+        if (useTestApp) {
+            _files.push("dist/wizer.js");
+            _files.push("dist/wizer.min.js");
+            _files.push("bower_components/bootstrap/dist/css/bootstrap.css");
+            _files.push("bower_components/bootstrap/dist/js/bootstrap.js");
+
+            _files.push("tests/app/index.html");
+            _files.push("tests/app/main.controller.js");
+        }
 
         return _files;
     }();
