@@ -1,6 +1,7 @@
 (function (testUtils, _) {
 
-    describe("SPList Service", function () {
+    var suites = ["SPList Class", "CRUD operations"];
+    describes(suites, function () {
         var siteUrl = "http://dev.fxp.net/rbs", listName = "Reservations", itemId = 1001,
             newItem = {testProp: "testProp"}, digestValue = "abcdefghijlkm";
         var $httpBackend, $SPList, list, select, expand;

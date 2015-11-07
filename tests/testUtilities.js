@@ -1,4 +1,4 @@
-var testUtils = function (testUtils, _, $) {
+var testUtils = function (testUtils, _, $, global) {
 
     testUtils.listItemRegex = function (siteUrl, listName, itemId) {
         var regexStr = String.format("{0}/_api/lists/getByTitle\\('{1}'\\)/items", siteUrl, listName);
@@ -26,5 +26,18 @@ var testUtils = function (testUtils, _, $) {
         digestDiv.val(digestValue);
     };
 
+    global.describes = function (suites, fn) {
+        function recDesc (internal_suites) {
+            if (!_.any(internal_suites)) {
+                return fn();
+            } else {
+                return describe(internal_suites.shift(), function() {
+                    recDesc(internal_suites);
+                });
+            }
+        }
+        recDesc(suites);
+    };
+
     return testUtils;
-}(testUtils || {}, _, $);
+}(testUtils || {}, _, $, window);
