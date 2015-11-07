@@ -19,6 +19,9 @@
     _.mixin({
         extendClone: function (obj) {
             return _.extend.apply(_, [{}, obj].concat(_.rest(arguments)));
+        },
+        mergeClone: function (obj) {
+            return _.merge.apply(_, [{}, obj].concat(_.rest(arguments)));
         }
     });
 })(_);

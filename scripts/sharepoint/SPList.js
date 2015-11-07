@@ -1,5 +1,5 @@
 var wizer = wizer || {};
-wizer.sharepoint = function(sharepoint, _){
+wizer.sharepoint = function (sharepoint, _, $) {
     "use strict";
 
     sharepoint.SPList = wizer.Class.extend({
@@ -8,16 +8,24 @@ wizer.sharepoint = function(sharepoint, _){
          * SPList constructor.
          * @param configs
          */
-        init: function(configs) {
+        init: function (configs) {
             /**
              * Validate configs properties.
              */
             (function validateConfigs() {
+                if (!configs) throw new Error("Configs must be specified.");
+
+                configs.siteUrl = function checkSiteUrl() {
+                    var url = (typeof configs.siteUrl !== "undefined") ? configs.siteUrl : ".";
+                    url = $(String.format("<a href='{0}'></a>", url))[0].href;
+                    url = _.endsWith(url, "/") ? url.slice(0, url.length - 1) : url;
+                    return url;
+                }();
+
                 var requiredKeys = [
                     "siteUrl",
                     "listName"
                 ];
-                if (!configs) throw new Error("Configs must be specified.");
                 _.forEach(requiredKeys, function (keyName) {
                     if (!configs[keyName])
                         throw new Error(String.format("Config's '{0}' field is mandatory.", keyName))
@@ -38,77 +46,8 @@ wizer.sharepoint = function(sharepoint, _){
                 /**
                  * `DataSource` for CRUD operations.
                  */
-                dataSource: {
-
-                }
+                dataSource: {}
             });
-        },
-
-        // CRUD operations.
-        /**
-         * Get single item by id
-         * @param itemId
-         * @param configs
-         */
-        get: function (itemId, configs) {
-            console.log(arguments);
-        },
-        /**
-         * Get multiple items.
-         * Can pass $filter to filter item.
-         * @param itemIds
-         * @param configs
-         */
-        getAll: function (itemIds, configs) {
-
-        },
-        /**
-         * Create single item.
-         * @param item
-         * @param configs
-         */
-        create: function (item, configs) {
-
-        },
-        /**
-         * Create multiple items.
-         * @param items
-         * @param configs
-         */
-        createAll: function (items, configs) {
-
-        },
-        /**
-         * Update single item.
-         * @param item
-         * @param configs
-         */
-        update: function (item, configs) {
-
-        },
-        /**
-         * Update multiple items.
-         * @param items
-         * @param configs
-         */
-        updateAll: function (items, configs) {
-
-        },
-        /**
-         * Remove single item by id.
-         * @param itemId
-         * @param configs
-         */
-        remove: function (itemId, configs) {
-
-        },
-        /**
-         * Remove multiple items by item ids.
-         * @param itemIds
-         * @param configs
-         */
-        removeAll: function (itemIds, configs) {
-
         },
 
         // Getter Setter.
@@ -120,4 +59,4 @@ wizer.sharepoint = function(sharepoint, _){
     });
 
     return sharepoint;
-}(wizer.sharepoint || {}, _);
+}(wizer.sharepoint || {}, _, $);
