@@ -199,6 +199,26 @@
                 $httpBackend.flush();
             });
         });
+        describe("when save single item", function () {
+            it("should call update if `item.Id` is presence", function () {
+                spyOn(list, "update");
+                spyOn(list, "create");
+
+                list.save({Id: 1});
+
+                expect(list.update).toHaveBeenCalled();
+                expect(list.create).not.toHaveBeenCalled();
+            });
+            it("should call update if `item.Id` is NOT presence", function () {
+                spyOn(list, "update");
+                spyOn(list, "create");
+
+                list.save({});
+
+                expect(list.create).toHaveBeenCalled();
+                expect(list.update).not.toHaveBeenCalled();
+            });
+        });
 
         afterEach(function () {
             $httpBackend.verifyNoOutstandingExpectation();
