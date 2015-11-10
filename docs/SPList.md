@@ -1,5 +1,11 @@
 # SPList class
 Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances use SharePoint REST service to interact with the real list on the web site.
+
+## Inheritance hierarchy
+- [wizer.Class](https://github.com/nntoanbkit/wizer)
+    - [wizer.sharepoint.SPList](https://github.com/nntoanbkit/wizer)
+        - wizer.sharepoint.AngularSPList
+            - [wizer.sharepoint.AngularDocumentLibrary](https://github.com/nntoanbkit/wizer)
  
 ## Table of contents
 
@@ -16,6 +22,7 @@ Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances
     - [fieldConverters.lookup](#configsfieldconverterslookup-optional)
 - [Instance methods](#instance-methods)
     - [get](#getitemid-httpconfigs)
+    - [getAll](#getallitemids-httpconfigs)
     - [create](#createitem-httpconfigs)
     - [update](#updateitem-httpconfigs)
     - [remove](#removeitemid-httpconfigs)
@@ -250,6 +257,41 @@ httpConfigs *(optional)*    | `Object`      | The httpConfigs object used by `$h
 Type        | Details
 ----------- | -----------------------------------------------------------------------
 `Promise`   | A promise object which will resolve to a list item when get successful.
+
+### getAll([[itemIds][, httpConfigs]])
+Get all items on the list that satisfied some conditions.
+
+**Parameters**
+
+Param                       | Type              | Details
+--------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------
+itemIds *(optional)*        | `Array<Number>`   | The id of the items want to retrive.
+httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Example**
+
+````javascript
+var list = new $SPList();
+
+// get all items form the list.
+list.getAll().then(function (allItems) {});
+
+// get all items with specific `Id`
+list.getAll([1, 2]).then(function (items) {
+    expect(items[0].Id).toEqual(1);
+    expect(items[1].Id).toEqual(2);
+});
+
+// get all items with http configs
+var httpConfigs = {
+    params: {
+        $top: 10
+    }
+};
+list.getAll(httpConfigs).then(function (items) {
+    expect(items.length).toEqual(10);
+});
+````
 
 ### create(item[, httpConfigs])
 Create a new item on the list.
