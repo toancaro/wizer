@@ -288,3 +288,33 @@ httpConfigs *(optional)*    | `Object`      | The httpConfigs object used by `$h
 Type        | Details
 ----------- | -----------------------------------------------------------
 `Promise`   | A promise object which will resolve when remove successful.
+
+### define(listConfigs)
+Create new list instance with new list configurations. Old configs options if overritten if new ones are presences.
+
+**Parameter**
+
+Param           | Type          | Details
+--------------- | ------------- | --------------------------------------------------
+listConfigs     | `Object`      | New [list configurations object](#configurations).
+
+**Return**
+
+Type        | Details
+----------- | ----------------------------------------
+`Object`    | A list instance with new configurations.
+
+**Example**
+
+````javascript
+// The base list instance.
+var roomList = new $SPList({
+    siteUrl: "http://rooms.net",
+    listName: "Rooms"
+});
+
+// Inherit all functionalities of `roomList` but point to another list ("VIPRooms").
+var vipRoomList = roomList.define({
+    listName: "VIPRooms"
+});
+````
