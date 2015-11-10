@@ -16,11 +16,11 @@ Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances
 ````javascript
 angular
     .module("myApp", ["wizer"])
-    .controller("MainController", ["$scope", "$$SPList",
-        function ($scope, $$SPList) {
+    .controller("MainController", ["$scope", "$SPList",
+        function ($scope, $SPList) {
             $scope.vm = {};
             
-            var roomList = new $$SPList({
+            var roomList = new $SPList({
                 siteUrl: "dev.fanxipan.net",
                 listName: "Rooms"
             });
@@ -36,7 +36,7 @@ angular
 Create a new instance of SPList class.
 
 ````javascript
-var list = new $$SPList(configs);
+var list = new $SPList(configs);
 ````
  
 The `configs` object has the following properties:
