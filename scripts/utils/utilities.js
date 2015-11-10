@@ -25,3 +25,30 @@
         }
     });
 })(_);
+
+var wizer = wizer || {};
+wizer.utils = (function (utils, _) {
+    utils.guid = function () {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return function () {
+            return s4() + s4() + "-" + s4() + "-" + s4() + "-" +
+                s4() + "-" + s4() + s4() + s4();
+        };
+    }();
+
+    utils.fileExt = function (fileName) {
+        if (fileName && _.isString(fileName)) {
+            var index = fileName.lastIndexOf(".");
+            if (index >= 0 && index < fileName.length - 1) {
+                return fileName.slice(index + 1);
+            }
+        }
+        return "";
+    };
+
+    return utils;
+})(wizer.utils || {}, _);

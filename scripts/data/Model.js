@@ -57,6 +57,7 @@ wizer.data = function (data, _, undefined) {
                 this.$$local = {};
 
                 // Must be set to `__proto__` to differentiate from parent $configs.
+                // If set to `this` object -> all instances will share the same `$configs`.
                 this["__proto__"].$configs = _.defaultsDeep(configs, this.$super.$configs);
             }
         });

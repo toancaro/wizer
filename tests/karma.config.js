@@ -2,7 +2,7 @@
 // Generated on Thu Sep 03 2015 14:27:53 GMT+0700 (SE Asia Standard Time)
 
 module.exports = function (config) {
-    var useMinified = true;
+    var useMinified = false;
     var useTestApp = false;
 
     var files = function () {

@@ -9,16 +9,6 @@
         .factory("$SPListDataSource", [
             "$q", "$http", "$DataSource",
             function ($q, $http, $DataSource) {
-                var convertPostData = function (listName, itemToPost, updatingItem) {
-                    return _.chain({}).extend(itemToPost, {
-                        "__metadata": {
-                            "type": "SP.Data." + listName + "ListItem"
-                        }
-                    }).omit(updatingItem ? "" : [
-                        "Id",
-                        "ID"
-                    ]).value();
-                };
                 var dataSourceConfigs = function () {
                     var dsConfigs = {};
 
@@ -34,8 +24,15 @@
                      */
                     _.set(dsConfigs, "transport.create", function (options) {
                         var self = this;
-                        return $http
-                            .post(this.$$getItemUrl(), convertPostData(this.$$splist.$configs.listName, options.item), _.extendClone(this.$$defaultHttpConfigs().create(), options.httpConfigs))
+                        return this.$validatePostData(options.item)
+                            .then(function (validatedData) {
+                                $http.post(
+                                    self.$$getItemUrl(),
+                                    validatedData,
+                                    _.extendClone(
+                                        self.$$defaultHttpConfigs().create(),
+                                        options.httpConfigs))
+                            })
                             .then(function (data) {
                                 return self.get(_.get(data, "data.d.Id"), options.httpConfigs);
                             });
@@ -60,8 +57,15 @@
                         if (!(itemId > 0))
                             return $q.reject(String.format("Invalid itemId. Expect positive interger, but get {0}", itemId));
 
-                        return $http
-                            .post(this.$$getItemUrl(itemId), convertPostData(this.$$splist.$configs.listName, options.item, true), _.extendClone(this.$$defaultHttpConfigs().update(), options.httpConfigs))
+                        return this.$validatePostData(options.item)
+                            .then(function (validatedData) {
+                                $http.post(
+                                    self.$$getItemUrl(itemId),
+                                    validatedData,
+                                    _.extendClone(
+                                        self.$$defaultHttpConfigs().update(),
+                                        options.httpConfigs))
+                            })
                             // Because successful update will not return anything so that we have to get data manually.
                             .then(function () {
                                 return self.get(itemId, options.httpConfigs);
@@ -143,6 +147,32 @@
                             itemId: itemId,
                             httpConfigs: httpConfigs
                         });
+                    });
+
+                    // Protected methods.
+                    _.set(dsConfigs, "$validatePostData", function (data) {
+                        var self = this;
+                        return getListItemEntityTypeFullName().then(function (fullName) {
+                            return _.chain({})
+                                .extend(data, {"__metadata": {"type": fullName}})
+                                .omit(["Id", "ID"])
+                                .value();
+                        });
+
+                        function getListItemEntityTypeFullName() {
+                            return $q.when()
+                                .then(function () {
+                                    return $http.get(self.$$getListUrl() + "?$select=ListItemEntityTypeFullName", {
+                                        cache: true,
+                                        headers: {
+                                            accept: "application/json;odata=verbose"
+                                        }
+                                    });
+                                })
+                                .then(function (response) {
+                                    return _.get(response, "data.d.ListItemEntityTypeFullName");
+                                });
+                        }
                     });
 
                     // Utils

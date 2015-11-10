@@ -44,6 +44,7 @@ var wizer = (function (wizer, _) {
             proto.init.apply(this, _.slice(arguments));
         };
         ctor.prototype = proto;
+        ctor.prototype.constructor = ctor;
         ctor.extend = extend;
 
         return ctor;

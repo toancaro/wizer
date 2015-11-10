@@ -95,9 +95,12 @@
                     },
                     create: function (item, httpConfigs) {
                         var self = this;
-                        return this.dataSource().add(item, httpConfigs)
-                            .then(function (item) {
-                                return self.$$parseServerItem(item);
+                        return this.$$parseClientItem(item)
+                            .then(function (parsedItem) {
+                                return self.dataSource().add(parsedItem, httpConfigs);
+                            })
+                            .then(function (createdItem) {
+                                return self.$$parseServerItem(createdItem);
                             });
                     },
                     createAll: function (items, httpConfigs) {
@@ -130,6 +133,40 @@
                         return $q.all(_.map(itemIds, function (itemId) {
                             return self.remove(itemId, httpConfigs);
                         }));
+                    },
+
+                    // Extra
+                    save: function (item, httpConfigs) {
+                        return item.Id > 0 ? this.update(item, httpConfigs) : this.create(item, httpConfigs);
+                    },
+                    saveAll: function (items, httpConfigs) {
+                        var self = this;
+                        return _.map(items, function (item) {
+                            return self.save(item, httpConfigs);
+                        });
+                    },
+                    getByUrl: function (url) {
+                        var self = this;
+                        return $http.get(url, {
+                            headers: {
+                                accept: "application/json;odata=verbose"
+                            }
+                        }).then(function (response) {
+                            return self.$$parseServerItem(_.get(response, "data.d"));
+                        });
+                    },
+                    getAllByUrl: function (url) {
+                        var self = this;
+                        return $http.get(url, {
+                            headers: {
+                                accept: "application/json;odata=verbose"
+                            }
+                        }).then(function (response) {
+                            var items = _.get(response, "data.d.results");
+                            return $q.all(_.map(items, function (item) {
+                                return self.$$parseServerItem(item);
+                            }));
+                        });
                     },
 
                     // Utils.

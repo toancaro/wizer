@@ -1,6 +1,6 @@
 (function (testUtils, _) {
 
-    var suites = ["SPList Class", "CRUD operations"];
+    var suites = ["AngularSPList", "CRUD operations"];
     describes(suites, function () {
         var siteUrl = "http://dev.fxp.net/rbs", listName = "Reservations", itemId = 1001,
             newItem = {testProp: "testProp"}, digestValue = "abcdefghijlkm";
@@ -28,6 +28,11 @@
             });
         });
         beforeEach(function () {
+            $httpBackend.when("GET", /ListItemEntityTypeFullName/).respond({
+                d: {
+                    ListItemEntityTypeFullName: "SP.Data." + listName + "ListItem"
+                }
+            });
             $httpBackend.when("GET", /\w*/).respond(null);
             $httpBackend.when("POST", /\w*/).respond(null);
         });
@@ -82,14 +87,14 @@
             });
         });
         describe("when get multiple item", function () {
-            it("should include `id query` in empty $filter", function  () {
+            it("should include `id query` in empty $filter", function () {
                 list.getAll([1, 2]);
                 $httpBackend.expect("GET", function (url) {
                     return _.contains(decodeURIComponent(url), "$filter=(Id+eq+1)+or+(Id+eq+2)")
                 });
                 $httpBackend.flush();
             });
-            it("should include `id query` in NON empty $filter", function  () {
+            it("should include `id query` in NON empty $filter", function () {
                 list.getAll([1, 2], {
                     params: {
                         $filter: "Test eq 1"
@@ -197,6 +202,26 @@
                     return !_.contains(decodeURIComponent(url), "$select=") && !_.contains(decodeURIComponent(url), "$expand=");
                 });
                 $httpBackend.flush();
+            });
+        });
+        describe("when save single item", function () {
+            it("should call update if `item.Id` is presence", function () {
+                spyOn(list, "update");
+                spyOn(list, "create");
+
+                list.save({Id: 1});
+
+                expect(list.update).toHaveBeenCalled();
+                expect(list.create).not.toHaveBeenCalled();
+            });
+            it("should call update if `item.Id` is NOT presence", function () {
+                spyOn(list, "update");
+                spyOn(list, "create");
+
+                list.save({});
+
+                expect(list.create).toHaveBeenCalled();
+                expect(list.update).not.toHaveBeenCalled();
             });
         });
 

@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    var suites = ["SPList Class", "when parsing"];
+    var suites = ["AngularSPList", "when parsing"];
     describes(suites, function () {
         var $q, $rootScope, $SPList, list, listConfigs;
         var serverItem, clientItem, parsedServerItem, parsedClientItem;
