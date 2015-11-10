@@ -2,16 +2,37 @@ var wizer = wizer || {};
 wizer.sharepoint = function (sharepoint, _, $) {
     "use strict";
 
-    sharepoint.SPList = wizer.Class.extend({
+    function define(listConfigs) {
+        var list = this.extend({
+            init: function (configs) {
+                this.$super.init.call(this, _.defaultsDeep({}, configs, listConfigs));
+            }
+        });
+
+        list.define = define;
+        return list;
+    }
+
+    function defineExtend(klass) {
+        var oldExtend = klass.extend;
+        klass.extend = function (klassConfigs) {
+            var newClass = oldExtend.call(klass, klassConfigs);
+
+            newClass.define = define;
+            defineExtend(newClass);
+
+            return newClass;
+        }
+    }
+
+    var SPList = wizer.Class.extend({
         // Constructor.
         /**
          * SPList constructor.
          * @param configs
          */
         init: function (configs) {
-            /**
-             * Validate configs properties.
-             */
+            // Validate configs properties.
             (function validateConfigs() {
                 if (!configs) throw new Error("Configs must be specified.");
 
@@ -23,7 +44,6 @@ wizer.sharepoint = function (sharepoint, _, $) {
                 }();
 
                 var requiredKeys = [
-                    "siteUrl",
                     "listName"
                 ];
                 _.forEach(requiredKeys, function (keyName) {
@@ -32,6 +52,7 @@ wizer.sharepoint = function (sharepoint, _, $) {
                 });
             })();
 
+            // The merged configs object from all Sub class defined by `define` method.
             this.$configs = _.defaultsDeep({}, configs, {
                 /**
                  * Required field.
@@ -49,6 +70,17 @@ wizer.sharepoint = function (sharepoint, _, $) {
                 dataSource: {}
             });
         },
+        /**
+         * Get new list instance with overwritable configs.
+         * @param configs
+         */
+        define: function (configs) {
+            // We dont want to use existing `datasource` of this instance for new object.
+            var ctor = this.constructor.define.call(
+                this.constructor, _.omit(this.$configs, "dataSource"));
+
+            return new ctor(configs);
+        },
 
         // Getter Setter.
         dataSource: function (newDataSource) {
@@ -58,5 +90,12 @@ wizer.sharepoint = function (sharepoint, _, $) {
         }
     });
 
+    // `defined` class inherit all methods, properties AND list configs.
+    SPList.define = define;
+
+    // Redefine `extend` method of class.
+    defineExtend(SPList);
+
+    sharepoint.SPList = SPList;
     return sharepoint;
 }(wizer.sharepoint || {}, _, $);
