@@ -5,11 +5,21 @@ Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances
 
 - [Usage](#usage)
 - [Configurations](#configurations)
+    - [siteUrl](#configssiteurl-optional)
+    - [listName](#configslistname)
+    - [schema](#configsschema-optional)
+    - [schema.afterGet](#configsschemaafterget-optional)
+    - [schema.beforePost](#configsschemabeforepost-optional)
+    - [fieldConverters](#configsfieldconverters-optional)
+    - [fieldConverters.json](#configsfieldconvertersjson-optional)
+    - [fieldConverters.dateTime](#configsfieldconvertersdatetime-optional)
+    - [fieldConverters.lookup](#configsfieldconverterslookup-optional)
 - [Instance methods](#instance-methods)
     - [get](#getitemid-httpconfigs)
     - [create](#createitem-httpconfigs)
     - [update](#updateitem-httpconfigs)
     - [remove](#removeitemid-httpconfigs)
+    - [define](#definelistconfigs)
 
 ## Usage
 
