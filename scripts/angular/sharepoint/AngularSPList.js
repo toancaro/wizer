@@ -95,9 +95,12 @@
                     },
                     create: function (item, httpConfigs) {
                         var self = this;
-                        return this.dataSource().add(item, httpConfigs)
-                            .then(function (item) {
-                                return self.$$parseServerItem(item);
+                        return this.$$parseClientItem(item)
+                            .then(function (parsedItem) {
+                                return self.dataSource().add(parsedItem, httpConfigs);
+                            })
+                            .then(function (createdItem) {
+                                return self.$$parseServerItem(createdItem);
                             });
                     },
                     createAll: function (items, httpConfigs) {
