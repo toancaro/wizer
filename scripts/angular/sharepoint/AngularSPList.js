@@ -135,6 +135,40 @@
                         }));
                     },
 
+                    // Extra
+                    save: function (item, httpConfigs) {
+                        return item.Id > 0 ? this.update(item, httpConfigs) : this.create(item, httpConfigs);
+                    },
+                    saveAll: function (items, httpConfigs) {
+                        var self = this;
+                        return _.map(items, function (item) {
+                            return self.save(item, httpConfigs);
+                        });
+                    },
+                    getByUrl: function (url) {
+                        var self = this;
+                        return $http.get(url, {
+                            headers: {
+                                accept: "application/json;odata=verbose"
+                            }
+                        }).then(function (response) {
+                            return self.$$parseServerItem(_.get(response, "data.d"));
+                        });
+                    },
+                    getAllByUrl: function (url) {
+                        var self = this;
+                        return $http.get(url, {
+                            headers: {
+                                accept: "application/json;odata=verbose"
+                            }
+                        }).then(function (response) {
+                            var items = _.get(response, "data.d.results");
+                            return $q.all(_.map(items, function (item) {
+                                return self.$$parseServerItem(item);
+                            }));
+                        });
+                    },
+
                     // Utils.
                     /**
                      * Parse the item which was got from server.
