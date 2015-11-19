@@ -7,7 +7,7 @@ module.exports = function (grunt) {
             options: {
                 banner: "/**\n" +
                         " * <%= pkg.name %> <%= pkg.version %>\n" +
-                        " * <%= grunt.template.today('yyyy-mm-dd') %>\n" +
+                        " * <%= grunt.template.today('yyyy-mm-dd HH:MM:ss') %>\n" +
                         " */\n"
             },
             build: {
@@ -15,7 +15,7 @@ module.exports = function (grunt) {
                     dest: "dist/wizer.js",
                     src: [
                         "scripts/angular/bootstrap.js",
-                        "scripts/Class.js",
+                        "scripts/core/Class.js",
                         "scripts/utils/ArgsParser.js",
                         "scripts/sharepoint/SPList.js",
                         "scripts/sharepoint/SPDocumentLibrary.js",
@@ -27,7 +27,7 @@ module.exports = function (grunt) {
         uglify: {
             options: {
                 sourceMap: true,
-                banner: "/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */"
+                banner: "/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd HH:MM:ss\") %> */"
             },
             build: {
                 files: [

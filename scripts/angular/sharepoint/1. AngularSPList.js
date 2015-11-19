@@ -1,3 +1,17 @@
+/**
+ * Parsing pipeline:
+ *  1. Request:
+ *      - $SPListItem
+ *      - fields.beforePost
+ *      - converters
+ *      - schema.beforePost
+ *  2. Response:
+ *      - schema.afterGet
+ *      - converters
+ *      - fields.afterGet
+ *      - $SPListItem
+ */
+
 (function (wizer, angular) {
     "use strict";
 
@@ -7,8 +21,8 @@
     angular
         .module("wizer.sharepoint")
         .factory("$SPList", [
-            "$q", "$http", "$SPListDataSource",
-            function ($q, $http, $SPListDataSource) {
+            "$q", "$http", "$SPListDataSource", "$SPListItem", "$SPListItemCollection",
+            function ($q, $http, $SPListDataSource, $SPListItem, $SPListItemCollection) {
                 return wizer.sharepoint.SPList.extend({
                     // Constructor.
                     init: function (configs) {
@@ -73,10 +87,13 @@
 
                     // CRUD.
                     get: function (itemId, httpConfigs) {
+                        if (!(itemId > 0))
+                            throw new Error("expect itemId to be a positive integer, but got " + itemId);
+
                         var self = this;
                         return this.dataSource().get(itemId, httpConfigs)
-                            .then(function (item) {
-                                return self.$$parseServerItem(item);
+                            .then(function (response) {
+                                return self.$$parseGetResponse(response);
                             });
                     },
                     getAll: function (itemIds, httpConfigs) {
@@ -87,10 +104,8 @@
                         ]).parse(arguments);
 
                         return this.dataSource().getAll(args.itemIds, args.httpConfigs)
-                            .then(function (items) {
-                                return $q.all(_.map(items, function (item) {
-                                    return self.$$parseServerItem(item);
-                                }));
+                            .then(function (response) {
+                                return self.$$parseGetAllResponse(response);
                             });
                     },
                     create: function (item, httpConfigs) {
@@ -152,7 +167,7 @@
                                 accept: "application/json;odata=verbose"
                             }
                         }).then(function (response) {
-                            return self.$$parseServerItem(_.get(response, "data.d"));
+                            return self.$$parseGetResponse(response);
                         });
                     },
                     getAllByUrl: function (url) {
@@ -162,10 +177,7 @@
                                 accept: "application/json;odata=verbose"
                             }
                         }).then(function (response) {
-                            var items = _.get(response, "data.d.results");
-                            return $q.all(_.map(items, function (item) {
-                                return self.$$parseServerItem(item);
-                            }));
+                            return self.$$parseGetAllResponse(response);
                         });
                     },
 
@@ -203,7 +215,7 @@
                             })
                             // Parse fields configs.
                             .then(function () {
-                                return _.map(self.$configs.fields, function (field, fieldName) {
+                                return $q.all(_.map(self.$configs.fields, function (field, fieldName) {
                                     /**
                                      * If `serverItem` does not have this property then no need
                                      * to parse anything.
@@ -214,11 +226,11 @@
                                         .then(function (newValue) {
                                             serverItem[fieldName] = newValue;
                                         });
-                                });
+                                }));
                             })
                             // Return the result.
                             .then(function () {
-                                return serverItem;
+                                return new $SPListItem(serverItem);
                             });
                     },
                     /**
@@ -287,6 +299,30 @@
                             // Return result.
                             .then(function () {
                                 return clientItem;
+                            });
+                    },
+                    /**
+                     * Parse response object which get from `get`.
+                     * @param {Object} response - $http response object.
+                     */
+                    $$parseGetResponse: function (response) {
+                        return this.$$parseServerItem(response.data.d);
+                    },
+                    /**
+                     * Parse response object which get from `getAll`.
+                     * @param {Object} response - $http response object.
+                     */
+                    $$parseGetAllResponse: function (response) {
+                        var self = this;
+                        return $q
+                            .all(_.map(response.data.d.results, function (item) {
+                                return self.$$parseServerItem(item);
+                            }))
+                            .then(function (items) {
+                                return $SPListItemCollection.create(items, self, {
+                                    current: response.config,
+                                    next: response.data.d["__next"]
+                                });
                             });
                     },
                     /**

@@ -26,7 +26,7 @@
                         var self = this;
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
-                                $http.post(
+                                return $http.post(
                                     self.$$getItemUrl(),
                                     validatedData,
                                     _.extendClone(
@@ -41,11 +41,13 @@
                      * Configs for getting item from the list.
                      */
                     _.set(dsConfigs, "transport.read", function (options) {
-                        return $http
-                            .get(this.$$getItemUrl(options.itemId), _.mergeClone(this.$$defaultHttpConfigs().get(), options.httpConfigs))
-                            .then(function (data) {
-                                return _.get(data, "data.d" + (options.method === "getList" ? ".results" : ""));
-                            });
+                        var httpConfigs = _.mergeClone(
+                            this.$$defaultHttpConfigs().get(),
+                            options.httpConfigs);
+
+                        var url = httpConfigs.url || this.$$getItemUrl(options.itemId);
+
+                        return $http.get(url, httpConfigs);
                     });
                     /**
                      * Configs for updating exsting item to the list.
@@ -55,11 +57,11 @@
 
                         var itemId = _.get(options, "item.Id");
                         if (!(itemId > 0))
-                            return $q.reject(String.format("Invalid itemId. Expect positive interger, but get {0}", itemId));
+                            throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
 
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
-                                $http.post(
+                                return $http.post(
                                     self.$$getItemUrl(itemId),
                                     validatedData,
                                     _.extendClone(
@@ -75,8 +77,16 @@
                      * Configs for removing item from the list.
                      */
                     _.set(dsConfigs, "transport.remove", function (options) {
-                        return $http
-                            .post(this.$$getItemUrl(options.itemId), undefined, _.extendClone(this.$$defaultHttpConfigs().remove(), options.httpConfigs))
+                        var self = this;
+                        return $q.when()
+                            .then(function () {
+                                return $http.post(
+                                    self.$$getItemUrl(options.itemId),
+                                    undefined,
+                                    _.extendClone(
+                                        self.$$defaultHttpConfigs().remove(),
+                                        options.httpConfigs))
+                            })
                             .then(function (data) {
                                 return data.data;   // should be nothing ("").
                             });
@@ -193,26 +203,29 @@
                         return url;
                     });
                     /**
-                     * Get the transport configurations.
-                     * @param transportName
-                     * @returns {*|{headers}}
-                     */
-                    _.set(dsConfigs, "$$getTransport", function (transportName) {
-                        var transportConfigs = _.get(this, "transport." + transportName);
-                        if (!transportConfigs)
-                            throw new Error(String.format("No {0} transport configurations.", transportName));
-
-                        return transportConfigs;
-                    });
-                    /**
                      * Call the transport configurations.
                      * @param transportName
                      * @returns {*}
                      */
                     _.set(dsConfigs, "$$invokeTransport", function (transportName) {
-                        var transport = this.$$getTransport(transportName);
+                        var self = this;
+                        var transport = getTransport(transportName);
+
                         if (_.isFunction(transport)) {
                             return $q.when(transport.apply(this, _.rest(arguments)));
+                        }
+
+                        /**
+                         * Get the transport configurations.
+                         * @param transportName
+                         * @returns {*|{headers}}
+                         */
+                        function getTransport(transportName) {
+                            var transportConfigs = _.get(self, "transport." + transportName);
+                            if (!transportConfigs)
+                                throw new Error(String.format("No {0} transport configurations.", transportName));
+
+                            return transportConfigs;
                         }
                     });
                     /**

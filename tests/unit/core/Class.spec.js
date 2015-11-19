@@ -1,4 +1,5 @@
 (function (wizer) {
+    "use strict";
 
     describe("Class", function () {
         var Class = wizer.Class;
