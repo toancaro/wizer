@@ -29,6 +29,8 @@ Angular service for interacting with SharePoint list.
     - [updateAll](#updateallitems-httpconfigs)
     - [remove](#removeitemid-httpconfigs)
     - [removeAll](#removeallitemids-httpconfigs)
+    - [save](#saveitem-httpconfigs)
+    - [saveAll](#saveallitems-httpconfigs)
 
 ## Usage
 
@@ -390,3 +392,35 @@ httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by
 Type        | Details
 ----------- | -----------------------------------------------------------
 `Promise`   | A promise object which will resolve when remove successful.
+
+### save(item[, httpConfigs])
+Save new item to the list. This method call `create` or `update` base on the presence of `Id` property on `item`.
+
+**Parameter**
+
+Param                       | Type          | Details
+--------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------
+item                        | `Object`      | The item to save to the list.
+httpConfigs *(optional)*    | `Object`      | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Return**
+
+Type        | Details
+----------- | --------------------------------------------------------
+`Promise`   | A promise object which will resolve when item are saved.
+
+### saveAll(items[, httpConfigs])
+Save multiple items to the list. Basically it calls `save` multiple times.
+
+**Parameter**
+
+Param                       | Type              | Details
+--------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------
+items                       | `Array<Object>`   | The items to save to the list.
+httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Return**
+
+Type        | Details
+----------- | ---------------------------------------------------------
+`Promise`   | A promise object which will resolve when items are saved.
