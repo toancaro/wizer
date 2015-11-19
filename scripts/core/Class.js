@@ -23,7 +23,10 @@ var wizer = (function (wizer, _) {
                     // Store old value of `$super`, then set its new value
                     // to current parent.
                     var oldSuper = this.$super;
-                    this.$super = proto.__proto__;
+
+                    // `__proto__` is not supported in IE < 11
+                    //this.$super = proto.__proto__;
+                    this.$super = Object.getPrototypeOf(proto);
 
                     var result = oldFn.apply(this, _.slice(arguments));
 
