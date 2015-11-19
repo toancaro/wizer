@@ -108,6 +108,18 @@
             $httpBackend.flush();
         });
 
+        describe("response object", function () {
+            it("should resolve to correct object", function () {
+                list.create({Id: itemId})
+                    .then(function (item) {
+                        expect(item.Id).toEqual(itemId);
+                        expect(item.Title).toEqual("Meeting Room");
+                    });
+
+                $httpBackend.flush();
+            });
+        });
+
         afterEach(function () {
             $httpBackend.verifyNoOutstandingExpectation();
             $httpBackend.verifyNoOutstandingRequest();

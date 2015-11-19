@@ -114,8 +114,8 @@
                             .then(function (parsedItem) {
                                 return self.dataSource().add(parsedItem, httpConfigs);
                             })
-                            .then(function (createdItem) {
-                                return self.$$parseServerItem(createdItem);
+                            .then(function (response) {
+                                return self.$$parseGetResponse(response);
                             });
                     },
                     createAll: function (items, httpConfigs) {
@@ -130,8 +130,8 @@
                             .then(function (parsedItem) {
                                 return self.dataSource().update(parsedItem, httpConfigs);
                             })
-                            .then(function () {
-                                return self.get(item.Id, httpConfigs);
+                            .then(function (response) {
+                                return self.$$parseGetResponse(response);
                             });
                     },
                     updateAll: function (items, httpConfigs) {

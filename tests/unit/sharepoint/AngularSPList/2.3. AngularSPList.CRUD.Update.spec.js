@@ -81,19 +81,38 @@
 
             $httpBackend.flush();
         });
-        it("should call `get` to get updated item", function () {
+        it("should send GET request to get created item", function () {
             var httpConfigs = {
                 params: {
                     $select: "select_something"
                 }
             };
 
-            spyOn(list, "get");
-
             list.update(item, httpConfigs);
-            $httpBackend.flush();
+            $httpBackend.expectGET(
+                function (url) {
+                    return testUtils.listItemRegex(siteUrl, listName, itemId).test(url);
+                },
+                function (header) {
+                    return _.isEqual(header, {
+                        accept: "application/json;odata=verbose"
+                    });
+                }
+            );
 
-            expect(list.get).toHaveBeenCalledWith(itemId, jasmine.objectContaining(httpConfigs));
+            $httpBackend.flush();
+        });
+
+        describe("response object", function () {
+            it("should resolve to correct object", function () {
+                list.update({Id: itemId})
+                    .then(function (item) {
+                        expect(item.Id).toEqual(itemId);
+                        expect(item.Title).toEqual("Meeting Room");
+                    });
+
+                $httpBackend.flush();
+            });
         });
 
         afterEach(function () {

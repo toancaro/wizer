@@ -31,10 +31,12 @@
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().create(),
-                                        options.httpConfigs))
+                                        options.httpConfigs
+                                    )
+                                )
                             })
-                            .then(function (data) {
-                                return self.get(_.get(data, "data.d.Id"), options.httpConfigs);
+                            .then(function (response) {
+                                return self.get(response.data.d.Id, options.httpConfigs);
                             });
                     });
                     /**
