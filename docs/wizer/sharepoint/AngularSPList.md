@@ -24,8 +24,11 @@ Angular service for interacting with SharePoint list.
     - [get](#getitemid-httpconfigs)
     - [getAll](#getallitemids-httpconfigs)
     - [create](#createitem-httpconfigs)
+    - [createAll](#createallitems-httpconfigs)
     - [update](#updateitem-httpconfigs)
+    - [updateAll](#updateallitems-httpconfigs)
     - [remove](#removeitemid-httpconfigs)
+    - [removeAll](#removeallitemids-httpconfigs)
 
 ## Usage
 
@@ -308,6 +311,22 @@ Type        | Details
 ----------- | ---------------------------------------------------------------------------------
 `Promise`   | A promise object which will resolve to newly created item when create successful.
 
+### createAll(items[, httpConfigs])
+Create multiple items on the list. Basically, it invokes `create` multiple times to create items.
+
+**Parameter**
+
+Param                       | Type              | Details
+--------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------
+items                       | `Array<Object>`   | The items to add to the list.<br/> **Note:** The `Id`, `ID` properties of each `item` object will be ignored if presence.
+httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Return**
+
+Type        | Details
+----------- | ----------------------------------------------------------------------------------
+`Promise`   | A promise object which will resolve to newly created items when create successful.
+
 ### update(item[, httpConfigs])
 Update an existing item on the list.
 
@@ -324,6 +343,22 @@ Type        | Details
 ----------- | ---------------------------------------------------------------------------
 `Promise`   | A promise object which will resolve to updated item when update successful.
 
+### updateAll(items[, httpConfigs])
+Update multiple existing items on the list.
+
+**Parameter**
+
+Param                       | Type              | Details
+--------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------
+items                       | `Object<Array>`   | The items to update.<br/> **Note:** Each `item` object must have `Id` property to work correctly.
+httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Return**
+
+Type        | Details
+----------- | ----------------------------------------------------------------------------
+`Promise`   | A promise object which will resolve to updated items when update successful.
+
 ### remove(itemId[, httpConfigs])
 Remove (delete) an existing item from the list.
 
@@ -333,6 +368,22 @@ Param                       | Type          | Details
 --------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------
 itemId                      | `Number`      | The `Id` of the item to be removed.
 httpConfigs *(optional)*    | `Object`      | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
+
+**Return**
+
+Type        | Details
+----------- | -----------------------------------------------------------
+`Promise`   | A promise object which will resolve when remove successful.
+
+### removeAll(itemIds[, httpConfigs])
+Remove (delete) existing items from the list.
+
+**Parameter**
+
+Param                       | Type              | Details
+--------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------
+itemIds                     | `Array<Number>`   | The `Id` of the items to be removed.
+httpConfigs *(optional)*    | `Object`          | The httpConfigs object used by `$http` service. Set this object will overwrite the default configurations.
 
 **Return**
 
