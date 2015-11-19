@@ -2,10 +2,10 @@
 Angular service for interacting with SharePoint list.
 
 ## Inheritance hierarchy
-- [wizer.Class](https://github.com/nntoanbkit/wizer)
-    - [wizer.sharepoint.SPList](https://github.com/nntoanbkit/wizer)
+- [wizer.Class](/docs/wizer/core/Class.md)
+    - [wizer.sharepoint.SPList](/docs/wizer/sharepoint/SPList.md)
         - wizer.sharepoint.AngularSPList
-            - [wizer.sharepoint.AngularDocumentLibrary](https://github.com/nntoanbkit/wizer)
+            - [wizer.sharepoint.AngularDocumentLibrary](/docs/wizer/sharepoint/AngularSPDocumentLibrary.md)
  
 ## Table of contents
 

@@ -2,10 +2,10 @@
 Represent a list on a Microsoft SharePoint Foundation Web site. SPList instances use SharePoint REST service to interact with the real list on the web site.
 
 ## Inheritance hierarchy
-- [wizer.Class](docs/wizer/core/Class.md)
+- [wizer.Class](/docs/wizer/core/Class.md)
     - wizer.sharepoint.SPList
-        - [wizer.sharepoint.AngularSPList](https://github.com/nntoanbkit/wizer)
-            - [wizer.sharepoint.AngularDocumentLibrary](https://github.com/nntoanbkit/wizer)
+        - [wizer.sharepoint.AngularSPList](/docs/wizer/sharepoint/AngularSPList.md)
+            - [wizer.sharepoint.AngularDocumentLibrary](/docs/wizer/sharepoint/AngularSPDocumentLibrary.md)
  
 ## Table of contents
 
