@@ -94,6 +94,7 @@ module.exports = function (config) {
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ["PhantomJS"],
+        //browsers: ["IE9", "Chrome", "Firefox"],
 
 
         // Continuous Integration mode
@@ -102,6 +103,17 @@ module.exports = function (config) {
 
         mochaReporter: {
             ignoreSkipped: true
+        },
+
+        customLaunchers: {
+            IE9: {
+                base: "IE",
+                "x-ua-compatible": "IE=EmulateIE9"
+            },
+            IE8: {
+                base: "IE",
+                "x-ua-compatible": "IE=EmulateIE8"
+            }
         }
     })
 };

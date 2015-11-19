@@ -7,7 +7,7 @@ module.exports = function (grunt) {
             options: {
                 banner: "/**\n" +
                         " * <%= pkg.name %> <%= pkg.version %>\n" +
-                        " * <%= grunt.template.today('yyyy-mm-dd') %>\n" +
+                        " * <%= grunt.template.today('yyyy-mm-dd HH:MM:ss') %>\n" +
                         " */\n"
             },
             build: {
@@ -27,7 +27,7 @@ module.exports = function (grunt) {
         uglify: {
             options: {
                 sourceMap: true,
-                banner: "/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd\") %> */"
+                banner: "/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today(\"yyyy-mm-dd HH:MM:ss\") %> */"
             },
             build: {
                 files: [
