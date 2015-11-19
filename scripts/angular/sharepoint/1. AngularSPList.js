@@ -278,18 +278,18 @@
                                 });
                                 _.forEach(self.$$getConvertKeys("lookup"), function (keyName) {
                                     var value = clientItem[keyName];
-                                    if (value == null) return;
-
                                     // Single lookup.
                                     if (!_.isArray(value)) {
-                                        clientItem[keyName + "Id"] = value.Id;
-                                        delete clientItem[keyName];
+                                        // Must set this field explicity to `null` to remove its data.
+                                        clientItem[keyName + "Id"] = (value && value.Id) || null;
                                     }
                                     // Multi lookup
                                     else {
                                         clientItem[keyName + "Id"] = {results: _.pluck(value, "Id")};
-                                        delete clientItem[keyName];
                                     }
+
+                                    // Must delete this field to prevent posting redundant data to server.
+                                    delete clientItem[keyName];
                                 });
                             })
                             // Schema.
