@@ -248,7 +248,7 @@
                         return $q.when()
                             // Field's configs.
                             .then(function () {
-                                return _.map(self.$configs.fields, function (field, fieldName) {
+                                return $q.all(_.map(self.$configs.fields, function (field, fieldName) {
                                     /**
                                      * If `clientItem` does not have this property then no need
                                      * to parse anything.
@@ -259,7 +259,7 @@
                                         .then(function (newValue) {
                                             clientItem[fieldName] = newValue;
                                         });
-                                });
+                                }));
                             })
                             // Converters.
                             .then(function () {
