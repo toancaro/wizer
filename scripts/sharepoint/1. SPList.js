@@ -2,6 +2,8 @@ var wizer = wizer || {};
 wizer.sharepoint = function (sharepoint, _, $) {
     "use strict";
 
+    var SPListField = wizer.sharepoint.SPListField;
+
     /**
      * Implementation of `define` function.
      * @param listConfigs
@@ -175,16 +177,7 @@ wizer.sharepoint = function (sharepoint, _, $) {
              * Array<Object{name,type,...}>
              */
             (function normalizeFields() {
-                makeArray(this.$configs, "fields");
-                _.forEach(this.$configs.fields, function (field, index) {
-
-                });
-
-                function createField(field) {
-                    if (_.isString(field)) {
-                        return { name: field };
-                    }
-                }
+                this.$configs.fields = SPListField.parseConfigs(this.$configs.fields);
             }).call(this);
 
             function makeArray(obj, prop) {
