@@ -3,7 +3,7 @@
 
     var SPListField = wizer.sharepoint.SPListField;
 
-    fdescribe("SPListField", function () {
+    describe("SPListField", function () {
         it("should be defined in `wizer.sharepoint` namespace", function () {
             expect(_.isFunction(SPListField)).toBe(true);
         });

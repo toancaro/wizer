@@ -14,7 +14,38 @@ wizer.sharepoint = function (sharepoint, _) {
 
             this.name = name;
             _.defaultsDeep(this, configs, {
-                parse: function (field) { return field; }
+                /**
+                 * Type of value of this field.
+                 * The avaible options are:
+                 *  - lookup
+                 *  - multilookup
+                 *  - datetime
+                 *  - json
+                 *  - "" (default value)
+                 */
+                type: "",
+                /**
+                 * Parse value of request object.
+                 * @param {*} value - the value of this field of request object.
+                 * @param {Object} request - the request object.
+                 * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
+                 * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
+                 * It's use full when you want to delete/rename some properties of request object.
+                 */
+                parseRequest: function (value, request) {
+                    return value;
+                },
+                /**
+                 * Parse value of request object.
+                 * @param {*} value - the value of this field of reponse object.
+                 * @param {Object} reponse - the reponse object.
+                 * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
+                 * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
+                 * It's use full when you want to delete/rename some properties of reponse object.
+                 */
+                parseResponse: function (value, reponse) {
+                    return value;
+                }
             });
         }
     });
