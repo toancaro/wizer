@@ -23,7 +23,7 @@ module.exports = function (config) {
                 "scripts/core/Class.js",
                 "scripts/core/ArrayClass.js",
                 "scripts/utils/ArgsParser.js",
-                "scripts/sharepoint/SPList.js",
+                "scripts/sharepoint/1. SPList.js",
                 "scripts/**/*.js"
             ]);
         }

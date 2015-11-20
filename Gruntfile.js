@@ -17,7 +17,7 @@ module.exports = function (grunt) {
                         "scripts/angular/bootstrap.js",
                         "scripts/core/Class.js",
                         "scripts/utils/ArgsParser.js",
-                        "scripts/sharepoint/SPList.js",
+                        "scripts/sharepoint/1. SPList.js",
                         "scripts/sharepoint/SPDocumentLibrary.js",
                         "scripts/**/*.js"
                     ]

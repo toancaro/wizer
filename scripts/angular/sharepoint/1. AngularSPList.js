@@ -31,28 +31,12 @@
                          */
                         configs = _.defaultsDeep({}, configs, {
                             /**
-                             * Fields configuration.
-                             * Details below...
-                             */
-                            fields: {},
-                            /**
                              * Some specials field converters.
                              */
                             fieldConverters: {
                                 json: [],
                                 lookup: [],
                                 dateTime: []
-                            },
-                            /**
-                             * Configs for request and reponse.
-                             */
-                            schema: {
-                                afterGet: function (serverItem) {
-                                    return serverItem;
-                                },
-                                beforePost: function (clientItem) {
-                                    return clientItem;
-                                }
                             },
                             /**
                              * Datasource to perform CRUD operations.
