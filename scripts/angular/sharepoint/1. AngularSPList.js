@@ -12,7 +12,7 @@
  *      - $SPListItem
  */
 
-(function (wizer, angular) {
+(function (wizer, angular, _) {
     "use strict";
 
     var ArgsParser = wizer.utils.ArgsParser;
@@ -48,6 +48,7 @@
                         _.forEach(configs.fields, function (field) {
                             _.defaultsDeep(field, {
                                 /**
+                                 * @deprecated use fields.parsers.response instead.
                                  * Called after `fieldConveters`.
                                  * @param value
                                  * @returns {*}
@@ -56,6 +57,7 @@
                                     return value;
                                 },
                                 /**
+                                 * @deprecated use fields.parsers.request instead.
                                  * Call before `fieldConverters`.
                                  * @param value
                                  * @returns {*}
@@ -69,7 +71,7 @@
                         this.$super.init.call(this, configs);
                     },
 
-                    // CRUD.
+                    //region CRUD operations
                     get: function (itemId, httpConfigs) {
                         if (!(itemId > 0))
                             throw new Error("expect itemId to be a positive integer, but got " + itemId);
@@ -133,6 +135,7 @@
                             return self.remove(itemId, httpConfigs);
                         }));
                     },
+                    //endregion
 
                     // Extra
                     save: function (item, httpConfigs) {
@@ -168,49 +171,44 @@
                     // Utils.
                     /**
                      * Parse the item which was got from server.
+                     * All chaining function use the same `serverItem` object.
                      * @param serverItem
                      */
                     $$parseServerItem: function (serverItem) {
-                        if (serverItem == null) return $q.when(null);
+                        if (null == serverItem) return $q.when(null);
 
                         var self = this;
                         return $q.when()
-                            // Parse schema.
+                            // configs.schema.response.parsing
                             .then(function () {
-                                return $q.when(self.$configs.schema.afterGet(serverItem));
-                            })
-                            // Parse converters.
-                            .then(function () {
-                                // Converters.
-                                _.forEach(self.$$getConvertKeys("json"), function (keyName) {
-                                    if (typeof(serverItem[keyName]) !== "string") return;
-                                    serverItem[keyName] = JSON.parse(serverItem[keyName]);
-                                });
-                                _.forEach(self.$$getConvertKeys("dateTime"), function (keyName) {
-                                    if (typeof(serverItem[keyName]) !== "string") return;
-                                    serverItem[keyName] = new Date(serverItem[keyName]);
-                                });
-                                _.forEach(self.$$getConvertKeys("lookup"), function (keyName) {
-                                    // If is multi-lookup then remove the `results` path.
-                                    if (!!_.get(serverItem, "[" + keyName + "].results")) {
-                                        serverItem[keyName] = serverItem[keyName].results;
-                                    }
+                                return reduce(self.$configs.schema.response.parsing, function (parseFn) {
+                                    return $q.when(parseFn(serverItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new serverItem.
+                                        if (result !== undefined) serverItem = result;
+                                    });
                                 });
                             })
-                            // Parse fields configs.
+                            // configs.fields.parsers.response
                             .then(function () {
-                                return $q.all(_.map(self.$configs.fields, function (field, fieldName) {
-                                    /**
-                                     * If `serverItem` does not have this property then no need
-                                     * to parse anything.
-                                     */
-                                    if (typeof (serverItem[fieldName]) === "undefined") return;
-
-                                    return $q.when(field.afterGet(serverItem[fieldName]))
-                                        .then(function (newValue) {
-                                            serverItem[fieldName] = newValue;
+                                // Parse all fields.
+                                return $q.all(_.map(self.$configs.fields, function (field) {
+                                    // Concat parsing pipe-line.
+                                    return reduce(field.parsers.response, function (parseFn) {
+                                        return $q.when(parseFn(serverItem[field.name], serverItem)).then(function (result) {
+                                            // if parseFn return new value then set that value to serverItem[field.name].
+                                            if (undefined !== result) serverItem[field.name] = result;
                                         });
+                                    });
                                 }));
+                            })
+                            // configs.schema.response.parsed
+                            .then(function () {
+                                return reduce(self.$configs.schema.response.parsed, function (parseFn) {
+                                    return $q.when(parseFn(serverItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new serverItem.
+                                        if (result !== undefined) serverItem = result;
+                                    });
+                                });
                             })
                             // Return the result.
                             .then(function () {
@@ -222,7 +220,7 @@
                      * @param clientItem
                      */
                     $$parseClientItem: function (clientItem) {
-                        if (typeof (clientItem) === "undefined") return $q.when(null);
+                        if (null == clientItem) return $q.when(null);
 
                         var self = this;
 
@@ -230,55 +228,36 @@
                         clientItem = _.cloneDeep(clientItem);
 
                         return $q.when()
-                            // Field's configs.
+                            // configs.schema.request.parsing
                             .then(function () {
-                                return $q.all(_.map(self.$configs.fields, function (field, fieldName) {
-                                    /**
-                                     * If `clientItem` does not have this property then no need
-                                     * to parse anything.
-                                     */
-                                    if (typeof (clientItem[fieldName]) === "undefined") return;
-
-                                    return $q.when(field.beforePost(clientItem[fieldName]))
-                                        .then(function (newValue) {
-                                            clientItem[fieldName] = newValue;
+                                return reduce(self.$configs.schema.request.parsing, function (parseFn) {
+                                    return $q.when(parseFn(clientItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new clientItem.
+                                        if (result !== undefined) clientItem = result;
+                                    });
+                                });
+                            })
+                            // configs.fields.parsers.request
+                            .then(function () {
+                                // Parse all fields.
+                                return $q.all(_.map(self.$configs.fields, function (field) {
+                                    // Concat parsing pipe-line.
+                                    return reduce(field.parsers.request, function (parseFn) {
+                                        return $q.when(parseFn(clientItem[field.name], clientItem)).then(function (result) {
+                                            // if parseFn return new value then set that value to clientItem[field.name].
+                                            if (result !== undefined) clientItem[field.name] = result;
                                         });
+                                    });
                                 }));
                             })
-                            // Converters.
+                            // configs.schema.request.parsed
                             .then(function () {
-                                // Converters.
-                                _.forEach(self.$$getConvertKeys("json"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    if (value == null) return;
-
-                                    clientItem[keyName] = JSON.stringify(value);
+                                return reduce(self.$configs.schema.request.parsed, function (parseFn) {
+                                    return $q.when(parseFn(clientItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new clientItem.
+                                        if (result !== undefined) clientItem = result;
+                                    });
                                 });
-                                _.forEach(self.$$getConvertKeys("dateTime"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    if (!_.isDate(value)) return;
-
-                                    clientItem[keyName] = value.toJSON();
-                                });
-                                _.forEach(self.$$getConvertKeys("lookup"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    // Single lookup.
-                                    if (!_.isArray(value)) {
-                                        // Must set this field explicity to `null` to remove its data.
-                                        clientItem[keyName + "Id"] = (value && value.Id) || null;
-                                    }
-                                    // Multi lookup
-                                    else {
-                                        clientItem[keyName + "Id"] = {results: _.pluck(value, "Id")};
-                                    }
-
-                                    // Must delete this field to prevent posting redundant data to server.
-                                    delete clientItem[keyName];
-                                });
-                            })
-                            // Schema.
-                            .then(function () {
-                                return $q.when(self.$configs.schema.beforePost(clientItem));
                             })
                             // Return result.
                             .then(function () {
@@ -321,6 +300,22 @@
                         return data;
                     }
                 });
+
+                /**
+                 * Chaining the array with reduce fn (Promise support).
+                 * @param {Array<Function>|*} fnArray - an array of function to reduce.
+                 * @param {Function} customFn - a function which is called with each function in `fnArray` and the
+                 * result of previous action.
+                 * @param {*=} thisArg - object which will be bound to context of `customFn`.
+                 * @return {Promise} - promise which concat all reduced function.
+                 */
+                function reduce(fnArray, customFn, thisArg) {
+                    return _.reduce(fnArray, function (memo, fn) {
+                        return memo.then(function () {
+                            return customFn.apply(thisArg, [fn].concat(_.slice(arguments)));
+                        });
+                    }, $q.when());
+                }
             }
         ]);
-})(wizer, angular);
+})(wizer, angular, _);

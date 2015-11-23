@@ -107,14 +107,16 @@ wizer.sharepoint = function (sharepoint, _, $) {
                         /**
                          * Invoke right before request are passed through parsing pipe-line.
                          * @param request
-                         * @returns {*}
+                         * @returns {*} - `undefined` to preserve old request item, otherwise new return value
+                         * will be considered to be new request object.
                          */
                         parsing: function (request) { return request; },
                         /**
                          * Invoke after request has been passed through parsing pipe-line and
                          * ready to post to server.
                          * @param parsedRequest
-                         * @returns {*}
+                         * @returns {*} - `undefined` to preserve old request item, otherwise new return value
+                         * will be considered to be new request object.
                          */
                         parsed: function (parsedRequest) { return parsedRequest; }
                     },
@@ -125,13 +127,15 @@ wizer.sharepoint = function (sharepoint, _, $) {
                         /**
                          * Invoke imediately when items are received from server.
                          * @param response
-                         * @returns {*}
+                         * @returns {*} - `undefined` to preserve old response item, otherwise new return value
+                         * will be considered to be new resonse object.
                          */
                         parsing: function (response) { return response; },
                         /**
                          * Invoke when response has been passed through parsing pipe-line.
                          * @param parsedResponse
-                         * @returns {*}
+                         * @returns {*} - `undefined` to preserve old response item, otherwise new return value
+                         * will be considered to be new resonse object.
                          */
                         parsed: function (parsedResponse) { return parsedResponse; }
                     }
@@ -165,20 +169,14 @@ wizer.sharepoint = function (sharepoint, _, $) {
          * Transform list configurations to standard form.
          */
         $normalizeConfigs: function () {
-            (function normalizeSchema() {
-                makeArray(this.$configs.schema.request, "parsing");
-                makeArray(this.$configs.schema.request, "parsed");
-                makeArray(this.$configs.schema.response, "parsing");
-                makeArray(this.$configs.schema.response, "parsed");
-            }).call(this);
+            // Normalize schema.
+            makeArray(this.$configs.schema.request, "parsing");
+            makeArray(this.$configs.schema.request, "parsed");
+            makeArray(this.$configs.schema.response, "parsing");
+            makeArray(this.$configs.schema.response, "parsed");
 
-            /**
-             * Field normalize form:
-             * Array<Object{name,type,...}>
-             */
-            (function normalizeFields() {
-                this.$configs.fields = SPListField.parseConfigs(this.$configs.fields);
-            }).call(this);
+            // Nomalize field configs.
+            this.$configs.fields = SPListField.parseConfigs(this.$configs.fields);
 
             function makeArray(obj, prop) {
                 var value = obj[prop];

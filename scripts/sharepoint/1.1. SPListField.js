@@ -25,31 +25,66 @@ wizer.sharepoint = function (sharepoint, _) {
                  */
                 type: "",
                 /**
-                 * Parse value of request object.
-                 * @param {*} value - the value of this field of request object.
-                 * @param {Object} request - the request object.
-                 * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
-                 * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
-                 * It's use full when you want to delete/rename some properties of request object.
+                 * Get this field from server but does not update its value when save.
+                 * @type {Boolean}
                  */
-                parseRequest: function (value, request) {
-                    return value;
-                },
+                readonly: false,
                 /**
-                 * Parse value of request object.
-                 * @param {*} value - the value of this field of reponse object.
-                 * @param {Object} reponse - the reponse object.
-                 * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
-                 * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
-                 * It's use full when you want to delete/rename some properties of reponse object.
+                 * Expand if this is lookup field.
+                 * If value is `true` then default lookup field is `Id` and `Title`.
+                 * @type {Boolean|String|Array<String>}
                  */
-                parseResponse: function (value, reponse) {
-                    return value;
+                expand: false,
+                /**
+                 * Parsing configurations.
+                 */
+                parsers: {
+                    /**
+                     * Parse value of request object.
+                     * @param {*} value - the value of this field of request object.
+                     * @param {Object} request - the request object.
+                     * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
+                     * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
+                     * It's use full when you want to delete/rename some properties of request object.
+                     */
+                    request: function (value, request) {
+                        return value;
+                    },
+                    /**
+                     * Parse value of request object.
+                     * @param {*} value - the value of this field of reponse object.
+                     * @param {Object} reponse - the reponse object.
+                     * @returns {Promise|*} - if the return value is `undefined` or promise which resolve to
+                     * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
+                     * It's use full when you want to delete/rename some properties of reponse object.
+                     */
+                    response: function (value, reponse) {
+                        return value;
+                    }
                 }
             });
+
+            // Normalize configs
+            this.$normalizeConfigs();
+        },
+
+        // Protected methods
+        $normalizeConfigs: function () {
+            makeArray(this.parsers, "request");
+            makeArray(this.parsers, "response");
+
+            function makeArray(obj, prop) {
+                var value = obj[prop];
+                obj[prop] = _.isArray(value) ? value : [value];
+            }
         }
     });
 
+    /**
+     * Normalize SPList fields configurations.
+     * @param fieldConfigs
+     * @returns {*}
+     */
     SPListField.parseConfigs = function (fieldConfigs) {
         if (_.isArray(fieldConfigs)) {
             return _.map(fieldConfigs, function (field) {
