@@ -47,9 +47,7 @@ wizer.sharepoint = function (sharepoint, _) {
                      * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
                      * It's use full when you want to delete/rename some properties of request object.
                      */
-                    request: function (value, request) {
-                        return value;
-                    },
+                    request: null,
                     /**
                      * Parse value of request object.
                      * @param {*} value - the value of this field of reponse object.
@@ -58,9 +56,7 @@ wizer.sharepoint = function (sharepoint, _) {
                      * `undefined` then the field is left intact. Otherwise, new value will be assigned to this field.
                      * It's use full when you want to delete/rename some properties of reponse object.
                      */
-                    response: function (value, reponse) {
-                        return value;
-                    }
+                    response: null
                 }
             });
 
@@ -74,8 +70,13 @@ wizer.sharepoint = function (sharepoint, _) {
             makeArray(this.parsers, "response");
 
             function makeArray(obj, prop) {
-                var value = obj[prop];
-                obj[prop] = _.isArray(value) ? value : [value];
+                obj[prop] = function () {
+                    var value = obj[prop];
+
+                    if (_.isArray(value)) return value;
+                    if (null != value) return [value];
+                    return [];
+                }();
             }
         }
     });

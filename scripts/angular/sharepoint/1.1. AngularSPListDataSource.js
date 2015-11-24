@@ -192,7 +192,7 @@
                      * Get list Rest url.
                      */
                     _.set(dsConfigs, "$$getListUrl", function () {
-                        return String.format("{0}/_api/lists/getByTitle('{1}')", this.$$splist.$configs.siteUrl, this.$$splist.$configs.listName);
+                        return String.format("{0}/_api/lists/getByTitle('{1}')", this.$$splist.configs().siteUrl, this.$$splist.configs().listName);
                     });
                     /**
                      * Get item Rest url.
@@ -278,10 +278,10 @@
                         function getQueryConfigs() {
                             var configs = {};
 
-                            if (_.any(self.$$splist.$configs.select))
-                                _.set(configs, "params.$select", self.$$splist.$configs.select.join(","));
-                            if (_.any(self.$$splist.$configs.expand))
-                                _.set(configs, "params.$expand", self.$$splist.$configs.expand.join(","));
+                            if (_.any(self.$$splist.configs().select))
+                                _.set(configs, "params.$select", self.$$splist.configs().select.join(","));
+                            if (_.any(self.$$splist.configs().expand))
+                                _.set(configs, "params.$expand", self.$$splist.configs().expand.join(","));
 
                             return configs;
                         }

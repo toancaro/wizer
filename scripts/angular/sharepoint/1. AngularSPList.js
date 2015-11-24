@@ -15,6 +15,7 @@
 (function (wizer, angular, _) {
     "use strict";
 
+    var deprecation = wizer.deprecation;
     var ArgsParser = wizer.utils.ArgsParser;
 
     if (!angular) return;
@@ -53,18 +54,14 @@
                                  * @param value
                                  * @returns {*}
                                  */
-                                afterGet: function (value) {
-                                    return value;
-                                },
+                                afterGet: wizer.identity,
                                 /**
                                  * @deprecated use fields.parsers.request instead.
                                  * Call before `fieldConverters`.
                                  * @param value
                                  * @returns {*}
                                  */
-                                beforePost: function (value) {
-                                    return value;
-                                }
+                                beforePost: wizer.identity
                             });
                         });
 
@@ -168,6 +165,18 @@
                         });
                     },
 
+                    // Overridden
+                    /**
+                     * TODO: remove this overridden.
+                     */
+                    $updateFieldParsers: function () {
+                        // TODO: remove this line
+                        deprecation.migrateToFieldConfigs(this.configs());
+
+                        // call super to make parsers.
+                        this.$super.$updateFieldParsers.call(this);
+                    },
+
                     // Utils.
                     /**
                      * Parse the item which was got from server.
@@ -177,11 +186,11 @@
                     $$parseServerItem: function (serverItem) {
                         if (null == serverItem) return $q.when(null);
 
-                        var self = this;
+                        var configs = this.configs();
                         return $q.when()
                             // configs.schema.response.parsing
                             .then(function () {
-                                return reduce(self.$configs.schema.response.parsing, function (parseFn) {
+                                return reduce(configs.schema.response.parsing, function (parseFn) {
                                     return $q.when(parseFn(serverItem)).then(function (result) {
                                         // if parseFn return new object then set that object as new serverItem.
                                         if (result !== undefined) serverItem = result;
@@ -191,7 +200,7 @@
                             // configs.fields.parsers.response
                             .then(function () {
                                 // Parse all fields.
-                                return $q.all(_.map(self.$configs.fields, function (field) {
+                                return $q.all(_.map(configs.fields, function (field) {
                                     // Concat parsing pipe-line.
                                     return reduce(field.parsers.response, function (parseFn) {
                                         return $q.when(parseFn(serverItem[field.name], serverItem)).then(function (result) {
@@ -203,7 +212,7 @@
                             })
                             // configs.schema.response.parsed
                             .then(function () {
-                                return reduce(self.$configs.schema.response.parsed, function (parseFn) {
+                                return reduce(configs.schema.response.parsed, function (parseFn) {
                                     return $q.when(parseFn(serverItem)).then(function (result) {
                                         // if parseFn return new object then set that object as new serverItem.
                                         if (result !== undefined) serverItem = result;
@@ -222,7 +231,7 @@
                     $$parseClientItem: function (clientItem) {
                         if (null == clientItem) return $q.when(null);
 
-                        var self = this;
+                        var configs = this.configs();
 
                         // Do NOT modified item that passes by user.
                         clientItem = _.cloneDeep(clientItem);
@@ -230,7 +239,7 @@
                         return $q.when()
                             // configs.schema.request.parsing
                             .then(function () {
-                                return reduce(self.$configs.schema.request.parsing, function (parseFn) {
+                                return reduce(configs.schema.request.parsing, function (parseFn) {
                                     return $q.when(parseFn(clientItem)).then(function (result) {
                                         // if parseFn return new object then set that object as new clientItem.
                                         if (result !== undefined) clientItem = result;
@@ -240,7 +249,7 @@
                             // configs.fields.parsers.request
                             .then(function () {
                                 // Parse all fields.
-                                return $q.all(_.map(self.$configs.fields, function (field) {
+                                return $q.all(_.map(configs.fields, function (field) {
                                     // Concat parsing pipe-line.
                                     return reduce(field.parsers.request, function (parseFn) {
                                         return $q.when(parseFn(clientItem[field.name], clientItem)).then(function (result) {
@@ -252,7 +261,7 @@
                             })
                             // configs.schema.request.parsed
                             .then(function () {
-                                return reduce(self.$configs.schema.request.parsed, function (parseFn) {
+                                return reduce(configs.schema.request.parsed, function (parseFn) {
                                     return $q.when(parseFn(clientItem)).then(function (result) {
                                         // if parseFn return new object then set that object as new clientItem.
                                         if (result !== undefined) clientItem = result;
@@ -287,17 +296,6 @@
                                     next: response.data.d["__next"]
                                 });
                             });
-                    },
-                    /**
-                     * Get the converter data by name.
-                     * @param converterName
-                     */
-                    $$getConvertKeys: function (converterName) {
-                        var data = _.get(this, "$configs.fieldConverters." + converterName);
-
-                        if (!data) return [];
-                        if (!_.isArray(data)) return [data];
-                        return data;
                     }
                 });
 

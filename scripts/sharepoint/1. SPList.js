@@ -1,7 +1,8 @@
 var wizer = wizer || {};
-wizer.sharepoint = function (sharepoint, _, $) {
+wizer.sharepoint = function (sharepoint, _) {
     "use strict";
 
+    var fieldType = wizer.constants.spListFieldType;
     var SPListField = wizer.sharepoint.SPListField;
 
     /**
@@ -110,7 +111,7 @@ wizer.sharepoint = function (sharepoint, _, $) {
                          * @returns {*} - `undefined` to preserve old request item, otherwise new return value
                          * will be considered to be new request object.
                          */
-                        parsing: function (request) { return request; },
+                        parsing: null,
                         /**
                          * Invoke after request has been passed through parsing pipe-line and
                          * ready to post to server.
@@ -118,7 +119,7 @@ wizer.sharepoint = function (sharepoint, _, $) {
                          * @returns {*} - `undefined` to preserve old request item, otherwise new return value
                          * will be considered to be new request object.
                          */
-                        parsed: function (parsedRequest) { return parsedRequest; }
+                        parsed: null
                     },
                     /**
                      * Configurations for parsing reponse.
@@ -130,21 +131,23 @@ wizer.sharepoint = function (sharepoint, _, $) {
                          * @returns {*} - `undefined` to preserve old response item, otherwise new return value
                          * will be considered to be new resonse object.
                          */
-                        parsing: function (response) { return response; },
+                        parsing: null,
                         /**
                          * Invoke when response has been passed through parsing pipe-line.
                          * @param parsedResponse
                          * @returns {*} - `undefined` to preserve old response item, otherwise new return value
                          * will be considered to be new resonse object.
                          */
-                        parsed: function (parsedResponse) { return parsedResponse; }
+                        parsed: null
                     }
                 }
             });
 
-            // Nomalize the configs.
-            this.$normalizeConfigs();
+            // We dont want to change `this.$configs` object due to extend (define) functionality of SPList.
+            this.configs(_.cloneDeep(this.$configs));
         },
+
+        // Methods.
         /**
          * Get new list instance with overwritable configs.
          * @param configs
@@ -152,12 +155,29 @@ wizer.sharepoint = function (sharepoint, _, $) {
         define: function (configs) {
             // We dont want to use existing `datasource` of this instance for new object.
             var ctor = this.constructor.define.call(
-                this.constructor, _.omit(this.$configs, "dataSource"));
+                this.constructor,
+                _.omit(this.$configs, "dataSource")
+            );
 
             return new ctor(configs);
         },
 
         // Getter Setter.
+        /**
+         * Save configurations to $$configs.
+         * @param newConfigs
+         * @returns {*}
+         */
+        configs: function (newConfigs) {
+            if (arguments.length > 0 && newConfigs !== this.$$configs) {
+                this.$$configs = newConfigs;
+
+                // update configs.
+                this.$normalizeConfigs();
+                this.$updateFieldParsers();
+            }
+            return this.$$configs;
+        },
         dataSource: function (newDataSource) {
             if (newDataSource != null)
                 this.$configs.dataSource = newDataSource;
@@ -169,18 +189,111 @@ wizer.sharepoint = function (sharepoint, _, $) {
          * Transform list configurations to standard form.
          */
         $normalizeConfigs: function () {
+            var configs = this.configs();
+
             // Normalize schema.
-            makeArray(this.$configs.schema.request, "parsing");
-            makeArray(this.$configs.schema.request, "parsed");
-            makeArray(this.$configs.schema.response, "parsing");
-            makeArray(this.$configs.schema.response, "parsed");
+            makeArray(configs.schema.request, "parsing");
+            makeArray(configs.schema.request, "parsed");
+            makeArray(configs.schema.response, "parsing");
+            makeArray(configs.schema.response, "parsed");
 
             // Nomalize field configs.
-            this.$configs.fields = SPListField.parseConfigs(this.$configs.fields);
+            configs.fields = SPListField.parseConfigs(configs.fields);
 
             function makeArray(obj, prop) {
-                var value = obj[prop];
-                obj[prop] = _.isArray(value) ? value : [value];
+                obj[prop] = function () {
+                    var value = obj[prop];
+
+                    if (_.isArray(value)) return value;
+                    if (null != value) return [value];
+                    return [];
+                }();
+
+            }
+        },
+        /**
+         * Update field parsers corresponding to its type.
+         */
+        $updateFieldParsers: function () {
+            _.forEach(this.configs().fields, function (field) {
+                switch (field.type) {
+                    case fieldType.JSON:
+                        updateJsonType(field);
+                        break;
+                    case fieldType.DATE_TIME:
+                        updateDateTimeType(field);
+                        break;
+                    case fieldType.LOOKUP:
+                        updateLookupType(field);
+                        break;
+                    case fieldType.MULTI_LOOKUP:
+                        updateMultiLookupType(field);
+                        break;
+                    case fieldType.PERSON:
+                        updateLookupType(field);
+                        break;
+                    case fieldType.PEOPLE:
+                        updateMultiLookupType(field);
+                        break;
+                }
+
+                if (field.readonly) {
+                    updateReadonly(field);
+                }
+            });
+
+            // Type.
+            function updateJsonType(field) {
+                field.parsers.request.unshift(function (fieldValue) {
+                    return JSON.stringify(fieldValue);
+                });
+                field.parsers.response.unshift(function (fieldValue) {
+                    if (_.isString(fieldValue) && fieldValue !== "")
+                        return JSON.parse(fieldValue);
+
+                    return null;
+                });
+            }
+            function updateDateTimeType(field) {
+                field.parsers.request.unshift(function (fieldValue) {
+                    return fieldValue && fieldValue.toJSON();
+                });
+                field.parsers.response.unshift(function (fieldValue) {
+                    if (_.isString(fieldValue) && fieldValue !== "")
+                        return new Date(fieldValue);
+
+                    return null;
+                });
+            }
+            function updateLookupType(field) {
+                field.parsers.request.unshift(function (fieldValue, request) {
+                    delete request[field.name];
+
+                    // if undefined then do not save this field <-> leave it as old value.
+                    if (undefined === fieldValue) return;
+                    request[field.name + "Id"] = _.get(fieldValue, "Id", null);
+                });
+            }
+            function updateMultiLookupType(field) {
+                field.parsers.response.unshift(function (fieldValue) {
+                    return _.get(fieldValue, "results", []);
+                });
+                field.parsers.request.unshift(function (fieldValue, request) {
+                    delete request[field.name];
+
+                    // if undefined then do not save this field <-> leave it as old value.
+                    if (undefined === fieldValue) return;
+                    request[field.name + "Id"] = {
+                        results: _.pluck(fieldValue, "Id")
+                    };
+                });
+            }
+
+            // Readonly.
+            function updateReadonly(field) {
+                field.parsers.request = [function (fieldValue, request) {
+                    delete request[field.name];
+                }];
             }
         }
     });
@@ -193,4 +306,4 @@ wizer.sharepoint = function (sharepoint, _, $) {
 
     sharepoint.SPList = SPList;
     return sharepoint;
-}(wizer.sharepoint || {}, _, $);
+}(wizer.sharepoint || {}, _);
