@@ -19,6 +19,7 @@ module.exports = function (config) {
             _files.push("dist/wizer.min.js");
         } else {
             _files = _files.concat([
+                "scripts/utils/utilities.js",
                 "scripts/angular/bootstrap.js",
                 "scripts/core/Class.js",
                 "scripts/core/ArrayClass.js",
