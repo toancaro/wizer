@@ -132,7 +132,6 @@
                             return self.remove(itemId, httpConfigs);
                         }));
                     },
-                    //endregion
 
                     // Extra
                     save: function (item, httpConfigs) {
@@ -164,6 +163,78 @@
                             return self.$$parseGetAllResponse(response);
                         });
                     },
+                    //endregion
+
+                    //region Files and Folders
+                    /**
+                     * Get folder in this list.
+                     * @param {String} folderName - relative folder url to this list. Pass "." for getting root folder.
+                     */
+                    getFolder: function (folderName) {
+                        var url = this.dataSource().$$getListUrl() + "/RootFolder";
+                        if ("." !== folderName) {
+                            url += "/Folders/GetByUrl('" + folderName + "')";
+                        }
+
+                        return $http.get(url, {
+                            headers: {
+                                accept: "application/json;odata=verbose"
+                            }
+                        }).then(function (data) {
+                            return data.data.d;
+                        });
+                    },
+                    /**
+                     * Get root folder of this list.
+                     * @returns {*}
+                     */
+                    getRootFolder: function () {
+                        return this.getFolder(".");
+                    },
+                    /**
+                     * Check if this list has the specified folder.
+                     * @param folderName
+                     */
+                    hasFolder: function (folderName) {
+                        return this.getFolder(folderName)
+                            .then(function (folder) {
+                                return {
+                                    hasFolder: true,
+                                    folder: folder
+                                };
+                            })
+                            .catch(function () {
+                                return {hasFolder: false};
+                            });
+                    },
+                    /**
+                     * Create a new folder under the `RootFolder`.
+                     * @param {String} folderName - name of new folder.
+                     */
+                    createFolder: function (folderName) {
+                        var url = this.dataSource().$$getListUrl() + "/RootFolder/Folders/Add('" + folderName + "')";
+                        return $http.post(url, null, {
+                            headers: {
+                                accept: "application/json;odata=verbose",
+                                "X-REQUESTDIGEST": $("#__REQUESTDIGEST").val()
+                            }
+                        }).then(function (data) {
+                            return data.data.d;
+                        });
+                    },
+                    /**
+                     * Get folder by `folderName` if that folder existed, otherwise create new folder.
+                     * @param folderName
+                     */
+                    ensureFolder: function (folderName) {
+                        var _this = this;
+                        return this.hasFolder(folderName)
+                            .then(function (result) {
+                                if (result.hasFolder) return result.folder;
+                                return _this.createFolder(folderName);
+                            });
+                    },
+                    //endregion
 
                     // Overridden
                     /**
@@ -177,7 +248,7 @@
                         this.$super.$updateFieldParsers.call(this);
                     },
 
-                    // Utils.
+                    //region Utils.
                     /**
                      * Parse the item which was got from server.
                      * All chaining function use the same `serverItem` object.
@@ -297,6 +368,7 @@
                                 });
                             });
                     }
+                    //endregion
                 });
 
                 /**
