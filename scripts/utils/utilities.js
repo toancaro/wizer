@@ -56,6 +56,17 @@ wizer.utils = (function (utils, _) {
         return "";
     };
 
+    utils.fileNameWithoutExt = function (fileName) {
+        if (fileName && _.isString(fileName)) {
+            var index = fileName.lastIndexOf(".");
+            if (index > -1) {
+                return fileName.slice(0, index);
+            }
+            return fileName;
+        }
+        return "";
+    };
+
     return utils;
 })(wizer.utils || {}, _);
 wizer.constants = (function (constants) {

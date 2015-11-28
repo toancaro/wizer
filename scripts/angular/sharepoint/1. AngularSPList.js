@@ -227,6 +227,8 @@
                      * @param folderName
                      */
                     ensureFolder: function (folderName) {
+                        if ("." === folderName) return this.getRootFolder();
+
                         var _this = this;
                         return this.hasFolder(folderName)
                             .then(function (result) {
