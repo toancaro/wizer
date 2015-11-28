@@ -100,7 +100,6 @@
                      */
                     _.set(dsConfigs, "get", function (itemId, httpConfigs) {
                         return this.$$invokeTransport("read", {
-                            method: "get",
                             itemId: itemId,
                             httpConfigs: httpConfigs
                         });
@@ -129,7 +128,6 @@
                         }
 
                         return this.$$invokeTransport("read", {
-                            method: "getList",
                             httpConfigs: httpConfigs
                         });
                     });

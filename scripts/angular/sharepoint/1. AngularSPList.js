@@ -70,7 +70,7 @@
 
                     //region CRUD operations
                     get: function (itemId, httpConfigs) {
-                        if (!(itemId > 0))
+                        if (!(itemId > 0) && !(httpConfigs && httpConfigs.url))
                             throw new Error("expect itemId to be a positive integer, but got " + itemId);
 
                         var self = this;
@@ -144,24 +144,10 @@
                         });
                     },
                     getByUrl: function (url) {
-                        var self = this;
-                        return $http.get(url, {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }).then(function (response) {
-                            return self.$$parseGetResponse(response);
-                        });
+                        return this.get(null, {url: url});
                     },
                     getAllByUrl: function (url) {
-                        var self = this;
-                        return $http.get(url, {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }).then(function (response) {
-                            return self.$$parseGetAllResponse(response);
-                        });
+                        return this.getAll({url: url});
                     },
                     //endregion
 
