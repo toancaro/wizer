@@ -1,6 +1,6 @@
 /**
  * wizer 0.2.0
- * 2015-11-28 15:52:42
+ * 2015-11-28 17:35:20
  */
 (function (_) {
     "use strict";
@@ -904,7 +904,7 @@ wizer.sharepoint = function (sharepoint, _) {
 
                     //region CRUD operations
                     get: function (itemId, httpConfigs) {
-                        if (!(itemId > 0))
+                        if (!(itemId > 0) && !(httpConfigs && httpConfigs.url))
                             throw new Error("expect itemId to be a positive integer, but got " + itemId);
 
                         var self = this;
@@ -978,24 +978,10 @@ wizer.sharepoint = function (sharepoint, _) {
                         });
                     },
                     getByUrl: function (url) {
-                        var self = this;
-                        return $http.get(url, {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }).then(function (response) {
-                            return self.$$parseGetResponse(response);
-                        });
+                        return this.get(null, {url: url});
                     },
                     getAllByUrl: function (url) {
-                        var self = this;
-                        return $http.get(url, {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }).then(function (response) {
-                            return self.$$parseGetAllResponse(response);
-                        });
+                        return this.getAll({url: url});
                     },
                     //endregion
 
@@ -1327,7 +1313,6 @@ wizer.sharepoint = function (sharepoint, _) {
                      */
                     _.set(dsConfigs, "get", function (itemId, httpConfigs) {
                         return this.$$invokeTransport("read", {
-                            method: "get",
                             itemId: itemId,
                             httpConfigs: httpConfigs
                         });
@@ -1356,7 +1341,6 @@ wizer.sharepoint = function (sharepoint, _) {
                         }
 
                         return this.$$invokeTransport("read", {
-                            method: "getList",
                             httpConfigs: httpConfigs
                         });
                     });
