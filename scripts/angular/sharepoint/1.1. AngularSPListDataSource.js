@@ -253,7 +253,7 @@
                                 });
                             },
                             update: function () {
-                                return _.extend(getQueryConfigs(), {
+                                return _.extend({
                                     headers: {
                                         "accept": "application/json;odata=verbose",
                                         "content-type": "application/json;odata=verbose",
@@ -275,13 +275,37 @@
                             }
                         };
 
+                        /**
+                         * Update $select and $expand params.
+                         * @returns {{}}
+                         */
                         function getQueryConfigs() {
-                            var configs = {};
+                            var configs = {}, select = [], expand = [];
 
-                            if (_.any(self.$$splist.configs().select))
-                                _.set(configs, "params.$select", self.$$splist.configs().select.join(","));
-                            if (_.any(self.$$splist.configs().expand))
-                                _.set(configs, "params.$expand", self.$$splist.configs().expand.join(","));
+                            _.forEach(self.$$splist.configs().fields, function (field) {
+                                // If field is expandable then it need custom select.
+                                if (!!field.expand) {
+                                    var props = function() {
+                                        if (field.expand === true) {
+                                            return ["Id", "Title"];
+                                        } else if (_.isArray(field.expand)) {
+                                            return field.expand;
+                                        }
+                                        return [];
+                                    }();
+                                    _.forEach(props, function (prop) {
+                                        select.push(String.format("{0}/{1}", field.name, prop));
+                                    });
+
+                                    expand.push(field.name);
+                                }
+                                else {
+                                    select.push(field.name);
+                                }
+                            });
+
+                            if (_.any(select)) _.set(configs, "params.$select", select.join(","));
+                            if (_.any(expand)) _.set(configs, "params.$expand", expand.join(","));
 
                             return configs;
                         }

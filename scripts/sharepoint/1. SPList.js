@@ -5,6 +5,7 @@ wizer.sharepoint = function (sharepoint, _) {
     var fieldType = wizer.constants.spListFieldType;
     var SPListField = wizer.sharepoint.SPListField;
 
+    //region Utils methods
     /**
      * Implementation of `define` function.
      * @param listConfigs
@@ -36,6 +37,7 @@ wizer.sharepoint = function (sharepoint, _) {
             return newClass;
         }
     }
+    //endregion
 
     var SPList = wizer.Class.extend({
         // Constructor.
@@ -216,6 +218,9 @@ wizer.sharepoint = function (sharepoint, _) {
          */
         $updateFieldParsers: function () {
             _.forEach(this.configs().fields, function (field) {
+                // Do not save `*` field.
+                if (/\*/.test(field.name)) field.readonly = true;
+
                 switch (field.type) {
                     case fieldType.JSON:
                         updateJsonType(field);
@@ -266,6 +271,8 @@ wizer.sharepoint = function (sharepoint, _) {
                 });
             }
             function updateLookupType(field) {
+                // Default expand to `Id` and `Title` if not set.
+                field.expand = field.expand || true;
                 field.parsers.request.unshift(function (fieldValue, request) {
                     delete request[field.name];
 
@@ -275,6 +282,9 @@ wizer.sharepoint = function (sharepoint, _) {
                 });
             }
             function updateMultiLookupType(field) {
+                // Default expand to `Id` and `Title` if not set.
+                field.expand = field.expand || true;
+
                 field.parsers.response.unshift(function (fieldValue) {
                     return _.get(fieldValue, "results", []);
                 });
@@ -298,11 +308,13 @@ wizer.sharepoint = function (sharepoint, _) {
         }
     });
 
+    //region Clas methods
     // `defined` class inherit all methods, properties AND list configs.
     SPList.define = define;
 
     // Redefine `extend` method of class.
     defineExtend(SPList);
+    //endregion
 
     sharepoint.SPList = SPList;
     return sharepoint;

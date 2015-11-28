@@ -82,7 +82,7 @@ wizer.constants = (function (constants) {
     return constants;
 })(wizer.constants || {});
 wizer.deprecation = (function (deprecation) {
-    _.set(deprecation, "warning.enable", true);
+    _.set(deprecation, "warning.enable", false);
     _.set(deprecation, "warning.verbose", false);
 
     /**
@@ -94,7 +94,7 @@ wizer.deprecation = (function (deprecation) {
         return function (message) {
             if (!deprecation.warning.enable) return;
             if (!checkExistance(message) || deprecation.warning.verbose) {
-                console.warn(message);
+                console.warn("wizer warning: " + message);
             }
         };
 
@@ -138,11 +138,7 @@ wizer.deprecation = (function (deprecation) {
             _.forEach(configs.fieldConverters, function (fieldNames, converterName) {
                 converterName = converterName.toLowerCase();
                 _.forEach(fieldNames, function (name) {
-                    var field = _.find(configs.fields, "name", name);
-                    if (!field) {
-                        field = new SPListField(name);
-                        configs.fields.push(field);
-                    }
+                    var field = getField(name);
 
                     if ("lookup" === converterName) {
                         field.type = "custom";
@@ -208,6 +204,44 @@ wizer.deprecation = (function (deprecation) {
             if (!_.contains(configs.schema.request.parsed, configs.schema.beforePost)) {
                 configs.schema.request.parsed.push(configs.schema.beforePost);
             }
+        }
+
+        if (_.any(configs.select)) {
+            warn("`$SPList.configs.select` is deprecated, consider using `$SPList.configs.fields` instead");
+
+            _.forEach(configs.select, function (select) {
+                var name = select.split("/")[0];
+                var expandName = select.split("/")[1];
+                var field = getField(name);
+
+                if (expandName) {
+                    field.expand = field.expand || [];
+                    field.expand.push(expandName);
+                }
+            });
+        }
+
+        if (_.any(configs.expand)) {
+            warn("`$SPList.configs.expand` is deprecated, consider using `$SPList.configs.fields` instead");
+
+            _.forEach(configs.expand, function (expand) {
+                var field = getField(expand);
+                field.type = field.type || "lookup";
+            });
+        }
+
+        /**
+         * Get the field from `configs` object or create if not exist.
+         * @param fieldName
+         */
+        function getField(fieldName) {
+            var field = _.find(configs.fields, "name", fieldName);
+            if (!field ) {
+                field = new SPListField(fieldName);
+                configs.fields.push(field);
+            }
+
+            return field;
         }
     };
 
