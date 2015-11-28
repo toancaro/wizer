@@ -92,17 +92,13 @@ wizer.sharepoint = function (sharepoint, _) {
                      * @param serverItem
                      * @returns {*}
                      */
-                    afterGet: function (serverItem) {
-                        return serverItem;
-                    },
+                    afterGet: wizer.identity,
                     /**
                      * @deprecated use schema.request.parsed instead.
                      * @param clientItem
                      * @returns {*}
                      */
-                    beforePost: function (clientItem) {
-                        return clientItem;
-                    },
+                    beforePost: wizer.identity,
                     /**
                      * Configurations for parsing request.
                      */

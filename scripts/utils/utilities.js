@@ -82,7 +82,7 @@ wizer.constants = (function (constants) {
     return constants;
 })(wizer.constants || {});
 wizer.deprecation = (function (deprecation) {
-    _.set(deprecation, "warning.enable", false);
+    _.set(deprecation, "warning.enable", true);
     _.set(deprecation, "warning.verbose", false);
 
     /**
@@ -125,7 +125,7 @@ wizer.deprecation = (function (deprecation) {
     deprecation.migrateToFieldConfigs = function (configs) {
         var SPListField = wizer.sharepoint.SPListField;
 
-        if (_.isFunction(configs.schema.afterGet)) {
+        if (_.isFunction(configs.schema.afterGet) && configs.schema.afterGet !== wizer.identity) {
             warn("`$SPList.configs.schema.afterGet` is deprecated, consider using `$SPList.configs.schema.response.parsing` instead");
 
             if (!_.contains(configs.schema.response.parsing, configs.schema.afterGet)) {
@@ -133,7 +133,7 @@ wizer.deprecation = (function (deprecation) {
             }
         }
 
-        if (_.any(configs.fieldConverters)) {
+        if (_.any(_.flatten(_.map(configs.fieldConverters, _.identity)))) {
             warn("`$SPList.configs.fieldConverters` is deprecated, consider using `$SPList.configs.fields.type` instead");
             _.forEach(configs.fieldConverters, function (fieldNames, converterName) {
                 converterName = converterName.toLowerCase();
@@ -198,7 +198,7 @@ wizer.deprecation = (function (deprecation) {
             }
         });
 
-        if (_.isFunction(configs.schema.beforePost)) {
+        if (_.isFunction(configs.schema.beforePost) && configs.schema.beforePost !== wizer.identity) {
             warn("`$SPList.configs.schema.beforePost` is deprecated, consider using `$SPList.configs.schema.request.parsed` instead");
 
             if (!_.contains(configs.schema.request.parsed, configs.schema.beforePost)) {
