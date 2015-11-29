@@ -14,7 +14,15 @@ wizer.sharepoint = function (sharepoint, _) {
     function define(listConfigs) {
         var list = this.extend({
             init: function (configs) {
-                this.$super.init.call(this, _.defaultsDeep({}, configs, listConfigs));
+                var mergedConfigs = _.merge(
+                    {},
+                    _.cloneDeep(listConfigs),
+                    configs,
+                    function (objectValue, sourceValue, key, object, source) {
+                        if (_.isArray(sourceValue)) return sourceValue;
+                    });
+
+                this.$super.init.call(this, mergedConfigs);
             }
         });
 
@@ -37,6 +45,7 @@ wizer.sharepoint = function (sharepoint, _) {
             return newClass;
         }
     }
+
     //endregion
 
     var SPList = wizer.Class.extend({
@@ -255,6 +264,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     return null;
                 });
             }
+
             function updateDateTimeType(field) {
                 field.parsers.request.unshift(function (fieldValue) {
                     return fieldValue && fieldValue.toJSON();
@@ -266,6 +276,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     return null;
                 });
             }
+
             function updateLookupType(field) {
                 // Default expand to `Id` and `Title` if not set.
                 field.expand = field.expand || true;
@@ -277,6 +288,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     request[field.name + "Id"] = _.get(fieldValue, "Id", null);
                 });
             }
+
             function updateMultiLookupType(field) {
                 // Default expand to `Id` and `Title` if not set.
                 field.expand = field.expand || true;

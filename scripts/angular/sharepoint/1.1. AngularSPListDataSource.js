@@ -56,15 +56,21 @@
                      */
                     _.set(dsConfigs, "transport.update", function (options) {
                         var self = this;
+                        var url = function () {
+                            var url = _.get(options, "httpConfigs.url");
+                            if (!!url) return url;
 
-                        var itemId = _.get(options, "item.Id");
-                        if (!(itemId > 0))
-                            throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+                            var itemId = _.get(options, "item.Id");
+                            if (!(itemId > 0))
+                                throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+
+                            return self.$$getItemUrl(itemId);
+                        }();
 
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
                                 return $http.post(
-                                    self.$$getItemUrl(itemId),
+                                    url,
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().update(),
@@ -72,7 +78,7 @@
                             })
                             // Because successful update will not return anything so that we have to get data manually.
                             .then(function () {
-                                return self.get(itemId, options.httpConfigs);
+                                return self.get(_.get(options, "item.Id"), options.httpConfigs);
                             });
                     });
                     /**
@@ -80,10 +86,11 @@
                      */
                     _.set(dsConfigs, "transport.remove", function (options) {
                         var self = this;
+                        var url = _.get(options, "httpConfigs.url", this.$$getItemUrl(options.itemId));
                         return $q.when()
                             .then(function () {
                                 return $http.post(
-                                    self.$$getItemUrl(options.itemId),
+                                    url,
                                     undefined,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().remove(),
@@ -283,7 +290,7 @@
                             _.forEach(self.$$splist.configs().fields, function (field) {
                                 // If field is expandable then it need custom select.
                                 if (!!field.expand) {
-                                    var props = function() {
+                                    var props = function () {
                                         if (field.expand === true) {
                                             return ["Id", "Title"];
                                         } else if (_.isArray(field.expand)) {

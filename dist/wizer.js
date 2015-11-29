@@ -1,6 +1,6 @@
 /**
  * wizer 0.2.0
- * 2015-11-28 17:35:20
+ * 2015-11-29 11:25:57
  */
 (function (_) {
     "use strict";
@@ -514,7 +514,15 @@ wizer.sharepoint = function (sharepoint, _) {
     function define(listConfigs) {
         var list = this.extend({
             init: function (configs) {
-                this.$super.init.call(this, _.defaultsDeep({}, configs, listConfigs));
+                var mergedConfigs = _.merge(
+                    {},
+                    _.cloneDeep(listConfigs),
+                    configs,
+                    function (objectValue, sourceValue, key, object, source) {
+                        if (_.isArray(sourceValue)) return sourceValue;
+                    });
+
+                this.$super.init.call(this, mergedConfigs);
             }
         });
 
@@ -537,6 +545,7 @@ wizer.sharepoint = function (sharepoint, _) {
             return newClass;
         }
     }
+
     //endregion
 
     var SPList = wizer.Class.extend({
@@ -755,6 +764,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     return null;
                 });
             }
+
             function updateDateTimeType(field) {
                 field.parsers.request.unshift(function (fieldValue) {
                     return fieldValue && fieldValue.toJSON();
@@ -766,6 +776,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     return null;
                 });
             }
+
             function updateLookupType(field) {
                 // Default expand to `Id` and `Title` if not set.
                 field.expand = field.expand || true;
@@ -777,6 +788,7 @@ wizer.sharepoint = function (sharepoint, _) {
                     request[field.name + "Id"] = _.get(fieldValue, "Id", null);
                 });
             }
+
             function updateMultiLookupType(field) {
                 // Default expand to `Id` and `Title` if not set.
                 field.expand = field.expand || true;
@@ -1269,15 +1281,21 @@ wizer.sharepoint = function (sharepoint, _) {
                      */
                     _.set(dsConfigs, "transport.update", function (options) {
                         var self = this;
+                        var url = function () {
+                            var url = _.get(options, "httpConfigs.url");
+                            if (!!url) return url;
 
-                        var itemId = _.get(options, "item.Id");
-                        if (!(itemId > 0))
-                            throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+                            var itemId = _.get(options, "item.Id");
+                            if (!(itemId > 0))
+                                throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+
+                            return self.$$getItemUrl(itemId);
+                        }();
 
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
                                 return $http.post(
-                                    self.$$getItemUrl(itemId),
+                                    url,
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().update(),
@@ -1285,7 +1303,7 @@ wizer.sharepoint = function (sharepoint, _) {
                             })
                             // Because successful update will not return anything so that we have to get data manually.
                             .then(function () {
-                                return self.get(itemId, options.httpConfigs);
+                                return self.get(_.get(options, "item.Id"), options.httpConfigs);
                             });
                     });
                     /**
@@ -1293,10 +1311,11 @@ wizer.sharepoint = function (sharepoint, _) {
                      */
                     _.set(dsConfigs, "transport.remove", function (options) {
                         var self = this;
+                        var url = _.get(options, "httpConfigs.url", this.$$getItemUrl(options.itemId));
                         return $q.when()
                             .then(function () {
                                 return $http.post(
-                                    self.$$getItemUrl(options.itemId),
+                                    url,
                                     undefined,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().remove(),
@@ -1496,7 +1515,7 @@ wizer.sharepoint = function (sharepoint, _) {
                             _.forEach(self.$$splist.configs().fields, function (field) {
                                 // If field is expandable then it need custom select.
                                 if (!!field.expand) {
-                                    var props = function() {
+                                    var props = function () {
                                         if (field.expand === true) {
                                             return ["Id", "Title"];
                                         } else if (_.isArray(field.expand)) {
