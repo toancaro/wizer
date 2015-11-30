@@ -24,10 +24,12 @@
                      */
                     _.set(dsConfigs, "transport.create", function (options) {
                         var self = this;
+                        var url = _.get(options, "httpConfigs.url", this.$$getItemUrl());
+
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
                                 return $http.post(
-                                    self.$$getItemUrl(),
+                                    url,
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().create(),

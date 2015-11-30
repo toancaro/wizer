@@ -126,7 +126,7 @@ wizer.deprecation = (function (deprecation) {
         var SPListField = wizer.sharepoint.SPListField;
 
         if (_.isFunction(configs.schema.afterGet) && configs.schema.afterGet !== wizer.identity) {
-            warn("`$SPList.configs.schema.afterGet` is deprecated, consider using `$SPList.configs.schema.response.parsing` instead");
+            warn("`$SPList.configs.schema.afterGet` is deprecated, consider using `$SPList.configs.schema.response.parsing` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
             if (!_.contains(configs.schema.response.parsing, configs.schema.afterGet)) {
                 configs.schema.response.parsing.push(configs.schema.afterGet);
@@ -134,7 +134,7 @@ wizer.deprecation = (function (deprecation) {
         }
 
         if (_.any(_.flatten(_.map(configs.fieldConverters, _.identity)))) {
-            warn("`$SPList.configs.fieldConverters` is deprecated, consider using `$SPList.configs.fields.type` instead");
+            warn("`$SPList.configs.fieldConverters` is deprecated, consider using `$SPList.configs.fields.type` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
             _.forEach(configs.fieldConverters, function (fieldNames, converterName) {
                 converterName = converterName.toLowerCase();
                 _.forEach(fieldNames, function (name) {
@@ -182,7 +182,7 @@ wizer.deprecation = (function (deprecation) {
 
         _.forEach(configs.fields, function (field) {
             if (field.afterGet !== wizer.identity && _.isFunction(field.afterGet)) {
-                warn("`$SPList.configs.fields.afterGet` is deprecated, consider using `$SPList.configs.fields.parsers.response` instead");
+                warn("`$SPList.configs.fields.afterGet` is deprecated, consider using `$SPList.configs.fields.parsers.response` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
                 if (!_.contains(field.parsers.response, field.afterGet)) {
                     field.parsers.response.push(field.afterGet);
@@ -190,7 +190,7 @@ wizer.deprecation = (function (deprecation) {
             }
 
             if (field.beforePost !== wizer.identity && _.isFunction(field.beforePost)) {
-                warn("`$SPList.configs.fields.beforePost` is deprecated, consider using `$SPList.configs.fields.parsers.request` instead");
+                warn("`$SPList.configs.fields.beforePost` is deprecated, consider using `$SPList.configs.fields.parsers.request` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
                 if (!_.contains(field.parsers.request, field.beforePost)) {
                     field.parsers.request.unshift(field.beforePost);
@@ -199,7 +199,7 @@ wizer.deprecation = (function (deprecation) {
         });
 
         if (_.isFunction(configs.schema.beforePost) && configs.schema.beforePost !== wizer.identity) {
-            warn("`$SPList.configs.schema.beforePost` is deprecated, consider using `$SPList.configs.schema.request.parsed` instead");
+            warn("`$SPList.configs.schema.beforePost` is deprecated, consider using `$SPList.configs.schema.request.parsed` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
             if (!_.contains(configs.schema.request.parsed, configs.schema.beforePost)) {
                 configs.schema.request.parsed.push(configs.schema.beforePost);
@@ -207,7 +207,7 @@ wizer.deprecation = (function (deprecation) {
         }
 
         if (_.any(configs.select)) {
-            warn("`$SPList.configs.select` is deprecated, consider using `$SPList.configs.fields` instead");
+            warn("`$SPList.configs.select` is deprecated, consider using `$SPList.configs.fields` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
             _.forEach(configs.select, function (select) {
                 var name = select.split("/")[0];
@@ -222,7 +222,7 @@ wizer.deprecation = (function (deprecation) {
         }
 
         if (_.any(configs.expand)) {
-            warn("`$SPList.configs.expand` is deprecated, consider using `$SPList.configs.fields` instead");
+            warn("`$SPList.configs.expand` is deprecated, consider using `$SPList.configs.fields` instead. More info: https://github.com/nntoanbkit/wizer/blob/feature/docs/docs/migration/migration.md");
 
             _.forEach(configs.expand, function (expand) {
                 var field = getField(expand);
