@@ -16,7 +16,7 @@ wizer.sharepoint = function (sharepoint, _) {
             init: function (configs) {
                 var mergedConfigs = _.merge(
                     {},
-                    _.cloneDeep(listConfigs),
+                    listConfigs,
                     configs,
                     function (objectValue, sourceValue, key, object, source) {
                         if (_.isArray(sourceValue)) return sourceValue;
