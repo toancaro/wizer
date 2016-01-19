@@ -1,15 +1,22 @@
-interface SearchFunc {
-    (source: string, subString: string): boolean;
+class Greeter {
+    static standardGreeting = "Hello, there";
+    greeting:string;
+
+    greet() {
+        if (this.greeting) {
+            return "Hello, " + this.greeting;
+        }
+        else {
+            return Greeter.standardGreeting;
+        }
+    }
 }
 
-var mySearch: SearchFunc;
-mySearch = function(source: string, subString: string) {
-    var result = source.search(subString);
-    return result != -1;
-};
+var greeter1:Greeter;
+greeter1 = new Greeter();
+alert(greeter1.greet());
 
-var mySearch: SearchFunc;
-mySearch = function(src: string, sub: string) {
-    var result = src.search(sub);
-    return result != -1;
-};
+var greeterMaker:typeof Greeter = Greeter;
+greeterMaker.standardGreeting = "Hey there!";
+var greeter2:Greeter = new greeterMaker();
+alert(greeter2.greet());
