@@ -1,5 +1,4 @@
-var Validation;
-(function (Validation) {
+define(["require", "exports"], function (require, exports) {
     var LettersValidator = (function () {
         function LettersValidator() {
         }
@@ -8,6 +7,6 @@ var Validation;
         };
         return LettersValidator;
     })();
-    Validation.LettersValidator = LettersValidator;
-})(Validation || (Validation = {}));
+    return LettersValidator;
+});
 //# sourceMappingURL=LettersValidator.js.map

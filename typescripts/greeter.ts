@@ -1,10 +1,12 @@
-/// <reference path="IStringValidator.ts"/>
-/// <reference path="LettersValidator.ts"/>
+import validation = require("IStringValidator");
+import LettersValidator = require("LettersValidator");
 
-module Validation {
-    var lettersRegexp = /^[A-Za-z]+$/;
-    var numberRegexp = /^[0-9]+$/;
-}
+var strings = ['Hello', '98052', '101'];
+var validators: { [s: string]: validation.IStringValidator; } = {};
+validators['Letters only'] = new LettersValidator();
 
-var validators: { [s: string]: Validation.IStringValidator } = {};
-validators["test"] = new Validation.LettersValidator();
+strings.forEach(s => {
+    for (var name in validators) {
+        console.log('"' + s + '" ' + (validators[name].isAcceptable(s) ? ' matches ' : ' does not match ') + name);
+    }
+});
