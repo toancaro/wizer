@@ -204,3 +204,7 @@ Properties/AssemblyInfo.cs
 Web.Debug.config
 Web.Release.config
 Web.config
+
+# TypeScripts
+typescripts/*.js
+typescripts/*.js.map
