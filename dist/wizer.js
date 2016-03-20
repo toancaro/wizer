@@ -1,6 +1,6 @@
 /**
  * wizer 0.2.0
- * 2015-12-02 16:02:14
+ * 2016-03-21 02:37:18
  */
 (function (_) {
     "use strict";
@@ -985,9 +985,9 @@ wizer.sharepoint = function (sharepoint, _) {
                     },
                     saveAll: function (items, httpConfigs) {
                         var self = this;
-                        return _.map(items, function (item) {
+                        return $q.all(_.map(items, function (item) {
                             return self.save(item, httpConfigs);
-                        });
+                        }));
                     },
                     getByUrl: function (url) {
                         return this.get(null, {url: url});

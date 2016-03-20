@@ -139,9 +139,9 @@
                     },
                     saveAll: function (items, httpConfigs) {
                         var self = this;
-                        return _.map(items, function (item) {
+                        return $q.all(_.map(items, function (item) {
                             return self.save(item, httpConfigs);
-                        });
+                        }));
                     },
                     getByUrl: function (url) {
                         return this.get(null, {url: url});
