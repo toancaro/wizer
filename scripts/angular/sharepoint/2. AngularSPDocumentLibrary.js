@@ -14,10 +14,19 @@
                     },
 
                     // Methods.
-                    uploadDocument: function (file, itemInfo) {
+                    /**
+                     * Upload a file and its property to this document library, optional specify a folder.
+                     * @param {File} file - a file object to upload to server.
+                     * @param {Object} itemInfo - object hash contains properties of file item.
+                     * @param {String} folderName - optional, name of folder in this document library, if folder does
+                     * not exist, new folder will be created.
+                     * @returns {Object} - created doc lib item.
+                     */
+                    uploadDocument: function (file, itemInfo, folderName) {
+                        folderName = folderName || ".";
                         var self = this;
 
-                        return this.$$uploadFile(file)
+                        return this.$$uploadFile(file, folderName)
                             // Get item all fields.
                             .then(function (item) {
                                 return getItemAllFields(item);
@@ -53,16 +62,41 @@
                     },
 
                     // Utils.
-                    $$uploadFile: function (file) {
+                    /**
+                     * Upload file to this document library. Optional specify a folder to upload to.
+                     * @param {File} file - File object to upload.
+                     * @param {String} folderName - optional, folder to upload to, new folder will be created if not existed.
+                     * @returns {Object} - created doc lib item.
+                     */
+                    $$uploadFile: function (file, folderName) {
                         if (!(file instanceof File))
                             throw new Error("Expect a file, but got " + file);
 
-                        var fileName = utils.guid() + "." + utils.fileExt(file.name);
-                        var url = this.$configs.siteUrl + String.format("/_api/web/lists/getByTitle('{0}')/rootFolder/files/add(overwrite=true, url='{1}')", this.$configs.listName, fileName);
+                        var _this = this, buffer, url;
 
-                        return getBufferFromFile(file).then(function (buffer) {
-                            return uploadFile(url, buffer);
-                        });
+                        return $q.when()
+                            // Get buffer.
+                            .then(function () {
+                                return getBufferFromFile(file).then(function (_buffer_) {
+                                    buffer = _buffer_;
+                                });
+                            })
+                            // Get url.
+                            .then(function () {
+                                return _this.ensureFolder(folderName).then(function (folder) {
+                                    var fileName = String.format("{0}_{1}.{2}",
+                                        utils.fileNameWithoutExt(file.name),
+                                        new Date().valueOf(),
+                                        utils.fileExt(file.name)
+                                    );
+
+                                    url = folder.Files["__deferred"].uri + "/add(overwrite=true, url='" + fileName + "')";
+                                });
+                            })
+                            // Upload file.
+                            .then(function () {
+                                return uploadFile(url, buffer);
+                            });
 
                         /**
                          * Get buffer from File object.

@@ -24,17 +24,21 @@
                      */
                     _.set(dsConfigs, "transport.create", function (options) {
                         var self = this;
+                        var url = _.get(options, "httpConfigs.url", this.$$getItemUrl());
+
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
                                 return $http.post(
-                                    self.$$getItemUrl(),
+                                    url,
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().create(),
-                                        options.httpConfigs))
+                                        options.httpConfigs
+                                    )
+                                )
                             })
-                            .then(function (data) {
-                                return self.get(_.get(data, "data.d.Id"), options.httpConfigs);
+                            .then(function (response) {
+                                return self.get(response.data.d.Id, options.httpConfigs);
                             });
                     });
                     /**
@@ -54,15 +58,21 @@
                      */
                     _.set(dsConfigs, "transport.update", function (options) {
                         var self = this;
+                        var url = function () {
+                            var url = _.get(options, "httpConfigs.url");
+                            if (!!url) return url;
 
-                        var itemId = _.get(options, "item.Id");
-                        if (!(itemId > 0))
-                            throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+                            var itemId = _.get(options, "item.Id");
+                            if (!(itemId > 0))
+                                throw new Error(String.format("Invalid itemId. Expect positive integer, but get {0}", itemId));
+
+                            return self.$$getItemUrl(itemId);
+                        }();
 
                         return this.$validatePostData(options.item)
                             .then(function (validatedData) {
                                 return $http.post(
-                                    self.$$getItemUrl(itemId),
+                                    url,
                                     validatedData,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().update(),
@@ -70,7 +80,7 @@
                             })
                             // Because successful update will not return anything so that we have to get data manually.
                             .then(function () {
-                                return self.get(itemId, options.httpConfigs);
+                                return self.get(_.get(options, "item.Id"), options.httpConfigs);
                             });
                     });
                     /**
@@ -78,10 +88,11 @@
                      */
                     _.set(dsConfigs, "transport.remove", function (options) {
                         var self = this;
+                        var url = _.get(options, "httpConfigs.url", this.$$getItemUrl(options.itemId));
                         return $q.when()
                             .then(function () {
                                 return $http.post(
-                                    self.$$getItemUrl(options.itemId),
+                                    url,
                                     undefined,
                                     _.extendClone(
                                         self.$$defaultHttpConfigs().remove(),
@@ -98,7 +109,6 @@
                      */
                     _.set(dsConfigs, "get", function (itemId, httpConfigs) {
                         return this.$$invokeTransport("read", {
-                            method: "get",
                             itemId: itemId,
                             httpConfigs: httpConfigs
                         });
@@ -127,7 +137,6 @@
                         }
 
                         return this.$$invokeTransport("read", {
-                            method: "getList",
                             httpConfigs: httpConfigs
                         });
                     });
@@ -190,7 +199,7 @@
                      * Get list Rest url.
                      */
                     _.set(dsConfigs, "$$getListUrl", function () {
-                        return String.format("{0}/_api/lists/getByTitle('{1}')", this.$$splist.$configs.siteUrl, this.$$splist.$configs.listName);
+                        return String.format("{0}/_api/lists/getByTitle('{1}')", this.$$splist.configs().siteUrl, this.$$splist.configs().listName);
                     });
                     /**
                      * Get item Rest url.
@@ -251,7 +260,7 @@
                                 });
                             },
                             update: function () {
-                                return _.extend(getQueryConfigs(), {
+                                return _.extend({
                                     headers: {
                                         "accept": "application/json;odata=verbose",
                                         "content-type": "application/json;odata=verbose",
@@ -273,13 +282,37 @@
                             }
                         };
 
+                        /**
+                         * Update $select and $expand params.
+                         * @returns {{}}
+                         */
                         function getQueryConfigs() {
-                            var configs = {};
+                            var configs = {}, select = [], expand = [];
 
-                            if (_.any(self.$$splist.$configs.select))
-                                _.set(configs, "params.$select", self.$$splist.$configs.select.join(","));
-                            if (_.any(self.$$splist.$configs.expand))
-                                _.set(configs, "params.$expand", self.$$splist.$configs.expand.join(","));
+                            _.forEach(self.$$splist.configs().fields, function (field) {
+                                // If field is expandable then it need custom select.
+                                if (!!field.expand) {
+                                    var props = function () {
+                                        if (field.expand === true) {
+                                            return ["Id", "Title"];
+                                        } else if (_.isArray(field.expand)) {
+                                            return field.expand;
+                                        }
+                                        return [];
+                                    }();
+                                    _.forEach(props, function (prop) {
+                                        select.push(String.format("{0}/{1}", field.name, prop));
+                                    });
+
+                                    expand.push(field.name);
+                                }
+                                else {
+                                    select.push(field.name);
+                                }
+                            });
+
+                            if (_.any(select)) _.set(configs, "params.$select", select.join(","));
+                            if (_.any(expand)) _.set(configs, "params.$expand", expand.join(","));
 
                             return configs;
                         }

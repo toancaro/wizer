@@ -1,5 +1,6 @@
 var testUtils = function (testUtils, _, $, global) {
 
+    // SPLists.
     testUtils.listItemRegex = function (siteUrl, listName, itemId) {
         var regexStr = String.format("{0}/_api/lists/getByTitle\\('{1}'\\)/items", siteUrl, listName);
         regexStr += (itemId > 0) ? String.format("\\({0}\\)", itemId) : "";
@@ -26,6 +27,19 @@ var testUtils = function (testUtils, _, $, global) {
         digestDiv.val(digestValue);
     };
 
+    // Matchers.
+    //testUtils.matchers = {
+    //    toContainsObject: function (util, customEqualityTesters) {
+    //        return {
+    //            compare: function (actual, expected) {
+    //                return {
+    //                    pass: util.equals(actual, jasmine.objectContaining(expected), customEqualityTesters)
+    //                };
+    //            }
+    //        };
+    //    }
+    //};
+
     global.describes = function (suites, fn) {
         describesImpl(suites, fn, "describe");
     };
@@ -48,7 +62,6 @@ var testUtils = function (testUtils, _, $, global) {
         }
         recDesc(suites);
     }
-
 
     return testUtils;
 }(testUtils || {}, _, $, window);

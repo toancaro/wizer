@@ -19,11 +19,13 @@ module.exports = function (config) {
             _files.push("dist/wizer.min.js");
         } else {
             _files = _files.concat([
+                "scripts/utils/utilities.js",
                 "scripts/angular/bootstrap.js",
                 "scripts/core/Class.js",
                 "scripts/core/ArrayClass.js",
                 "scripts/utils/ArgsParser.js",
-                "scripts/sharepoint/SPList.js",
+                "scripts/sharepoint/1.1. SPListField.js",
+                "scripts/sharepoint/1. SPList.js",
                 "scripts/**/*.js"
             ]);
         }

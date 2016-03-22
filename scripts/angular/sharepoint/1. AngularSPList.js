@@ -12,9 +12,10 @@
  *      - $SPListItem
  */
 
-(function (wizer, angular) {
+(function (wizer, angular, _) {
     "use strict";
 
+    var deprecation = wizer.deprecation;
     var ArgsParser = wizer.utils.ArgsParser;
 
     if (!angular) return;
@@ -31,28 +32,12 @@
                          */
                         configs = _.defaultsDeep({}, configs, {
                             /**
-                             * Fields configuration.
-                             * Details below...
-                             */
-                            fields: {},
-                            /**
                              * Some specials field converters.
                              */
                             fieldConverters: {
                                 json: [],
                                 lookup: [],
                                 dateTime: []
-                            },
-                            /**
-                             * Configs for request and reponse.
-                             */
-                            schema: {
-                                afterGet: function (serverItem) {
-                                    return serverItem;
-                                },
-                                beforePost: function (clientItem) {
-                                    return clientItem;
-                                }
                             },
                             /**
                              * Datasource to perform CRUD operations.
@@ -64,30 +49,28 @@
                         _.forEach(configs.fields, function (field) {
                             _.defaultsDeep(field, {
                                 /**
+                                 * @deprecated use fields.parsers.response instead.
                                  * Called after `fieldConveters`.
                                  * @param value
                                  * @returns {*}
                                  */
-                                afterGet: function (value) {
-                                    return value;
-                                },
+                                afterGet: wizer.identity,
                                 /**
+                                 * @deprecated use fields.parsers.request instead.
                                  * Call before `fieldConverters`.
                                  * @param value
                                  * @returns {*}
                                  */
-                                beforePost: function (value) {
-                                    return value;
-                                }
+                                beforePost: wizer.identity
                             });
                         });
 
                         this.$super.init.call(this, configs);
                     },
 
-                    // CRUD.
+                    //region CRUD operations
                     get: function (itemId, httpConfigs) {
-                        if (!(itemId > 0))
+                        if (!(itemId > 0) && !(httpConfigs && httpConfigs.url))
                             throw new Error("expect itemId to be a positive integer, but got " + itemId);
 
                         var self = this;
@@ -114,8 +97,8 @@
                             .then(function (parsedItem) {
                                 return self.dataSource().add(parsedItem, httpConfigs);
                             })
-                            .then(function (createdItem) {
-                                return self.$$parseServerItem(createdItem);
+                            .then(function (response) {
+                                return self.$$parseGetResponse(response);
                             });
                     },
                     createAll: function (items, httpConfigs) {
@@ -130,8 +113,8 @@
                             .then(function (parsedItem) {
                                 return self.dataSource().update(parsedItem, httpConfigs);
                             })
-                            .then(function () {
-                                return self.get(item.Id, httpConfigs);
+                            .then(function (response) {
+                                return self.$$parseGetResponse(response);
                             });
                     },
                     updateAll: function (items, httpConfigs) {
@@ -156,77 +139,144 @@
                     },
                     saveAll: function (items, httpConfigs) {
                         var self = this;
-                        return _.map(items, function (item) {
+                        return $q.all(_.map(items, function (item) {
                             return self.save(item, httpConfigs);
-                        });
+                        }));
                     },
                     getByUrl: function (url) {
-                        var self = this;
-                        return $http.get(url, {
-                            headers: {
-                                accept: "application/json;odata=verbose"
-                            }
-                        }).then(function (response) {
-                            return self.$$parseGetResponse(response);
-                        });
+                        return this.get(null, {url: url});
                     },
                     getAllByUrl: function (url) {
-                        var self = this;
+                        return this.getAll({url: url});
+                    },
+                    //endregion
+
+                    //region Files and Folders
+                    /**
+                     * Get folder in this list.
+                     * @param {String} folderName - relative folder url to this list. Pass "." for getting root folder.
+                     */
+                    getFolder: function (folderName) {
+                        var url = this.dataSource().$$getListUrl() + "/RootFolder";
+                        if ("." !== folderName) {
+                            url += "/Folders/GetByUrl('" + folderName + "')";
+                        }
+
                         return $http.get(url, {
                             headers: {
                                 accept: "application/json;odata=verbose"
                             }
-                        }).then(function (response) {
-                            return self.$$parseGetAllResponse(response);
+                        }).then(function (data) {
+                            return data.data.d;
                         });
                     },
+                    /**
+                     * Get root folder of this list.
+                     * @returns {*}
+                     */
+                    getRootFolder: function () {
+                        return this.getFolder(".");
+                    },
+                    /**
+                     * Check if this list has the specified folder.
+                     * @param folderName
+                     */
+                    hasFolder: function (folderName) {
+                        return this.getFolder(folderName)
+                            .then(function (folder) {
+                                return {
+                                    hasFolder: true,
+                                    folder: folder
+                                };
+                            })
+                            .catch(function () {
+                                return {hasFolder: false};
+                            });
+                    },
+                    /**
+                     * Create a new folder under the `RootFolder`.
+                     * @param {String} folderName - name of new folder.
+                     */
+                    createFolder: function (folderName) {
+                        var url = this.dataSource().$$getListUrl() + "/RootFolder/Folders/Add('" + folderName + "')";
+                        return $http.post(url, null, {
+                            headers: {
+                                accept: "application/json;odata=verbose",
+                                "X-REQUESTDIGEST": $("#__REQUESTDIGEST").val()
+                            }
+                        }).then(function (data) {
+                            return data.data.d;
+                        });
+                    },
+                    /**
+                     * Get folder by `folderName` if that folder existed, otherwise create new folder.
+                     * @param folderName
+                     */
+                    ensureFolder: function (folderName) {
+                        if ("." === folderName) return this.getRootFolder();
 
-                    // Utils.
+                        var _this = this;
+                        return this.hasFolder(folderName)
+                            .then(function (result) {
+                                if (result.hasFolder) return result.folder;
+                                return _this.createFolder(folderName);
+                            });
+                    },
+                    //endregion
+
+                    // Overridden
+                    /**
+                     * TODO: remove this overridden.
+                     */
+                    $updateFieldParsers: function () {
+                        // TODO: remove this line
+                        deprecation.migrateToFieldConfigs(this.configs());
+
+                        // call super to make parsers.
+                        this.$super.$updateFieldParsers.call(this);
+                    },
+
+                    //region Utils.
                     /**
                      * Parse the item which was got from server.
+                     * All chaining function use the same `serverItem` object.
                      * @param serverItem
                      */
                     $$parseServerItem: function (serverItem) {
-                        if (serverItem == null) return $q.when(null);
+                        if (null == serverItem) return $q.when(null);
 
-                        var self = this;
+                        var configs = this.configs();
                         return $q.when()
-                            // Parse schema.
+                            // configs.schema.response.parsing
                             .then(function () {
-                                return $q.when(self.$configs.schema.afterGet(serverItem));
-                            })
-                            // Parse converters.
-                            .then(function () {
-                                // Converters.
-                                _.forEach(self.$$getConvertKeys("json"), function (keyName) {
-                                    if (typeof(serverItem[keyName]) !== "string") return;
-                                    serverItem[keyName] = JSON.parse(serverItem[keyName]);
-                                });
-                                _.forEach(self.$$getConvertKeys("dateTime"), function (keyName) {
-                                    if (typeof(serverItem[keyName]) !== "string") return;
-                                    serverItem[keyName] = new Date(serverItem[keyName]);
-                                });
-                                _.forEach(self.$$getConvertKeys("lookup"), function (keyName) {
-                                    // If is multi-lookup then remove the `results` path.
-                                    if (!!_.get(serverItem, "[" + keyName + "].results")) {
-                                        serverItem[keyName] = serverItem[keyName].results;
-                                    }
+                                return reduce(configs.schema.response.parsing, function (parseFn) {
+                                    return $q.when(parseFn(serverItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new serverItem.
+                                        if (result !== undefined) serverItem = result;
+                                    });
                                 });
                             })
-                            // Parse fields configs.
+                            // configs.fields.parsers.response
                             .then(function () {
-                                return $q.all(_.map(self.$configs.fields, function (field, fieldName) {
-                                    /**
-                                     * If `serverItem` does not have this property then no need
-                                     * to parse anything.
-                                     */
-                                    if (typeof (serverItem[fieldName]) === "undefined") return;
-
-                                    return $q.when(field.afterGet(serverItem[fieldName]))
-                                        .then(function (newValue) {
-                                            serverItem[fieldName] = newValue;
+                                // Parse all fields.
+                                return $q.all(_.map(configs.fields, function (field) {
+                                    // Concat parsing pipe-line.
+                                    return reduce(field.parsers.response, function (parseFn) {
+                                        return $q.when(parseFn(serverItem[field.name], serverItem)).then(function (result) {
+                                            // if parseFn return new value then set that value to serverItem[field.name].
+                                            if (undefined !== result) serverItem[field.name] = result;
                                         });
+                                    });
                                 }));
+                            })
+                            // configs.schema.response.parsed
+                            .then(function () {
+                                return reduce(configs.schema.response.parsed, function (parseFn) {
+                                    return $q.when(parseFn(serverItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new serverItem.
+                                        if (result !== undefined) serverItem = result;
+                                    });
+                                });
                             })
                             // Return the result.
                             .then(function () {
@@ -238,63 +288,44 @@
                      * @param clientItem
                      */
                     $$parseClientItem: function (clientItem) {
-                        if (typeof (clientItem) === "undefined") return $q.when(null);
+                        if (null == clientItem) return $q.when(null);
 
-                        var self = this;
+                        var configs = this.configs();
 
                         // Do NOT modified item that passes by user.
                         clientItem = _.cloneDeep(clientItem);
 
                         return $q.when()
-                            // Field's configs.
+                            // configs.schema.request.parsing
                             .then(function () {
-                                return _.map(self.$configs.fields, function (field, fieldName) {
-                                    /**
-                                     * If `clientItem` does not have this property then no need
-                                     * to parse anything.
-                                     */
-                                    if (typeof (clientItem[fieldName]) === "undefined") return;
-
-                                    return $q.when(field.beforePost(clientItem[fieldName]))
-                                        .then(function (newValue) {
-                                            clientItem[fieldName] = newValue;
+                                return reduce(configs.schema.request.parsing, function (parseFn) {
+                                    return $q.when(parseFn(clientItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new clientItem.
+                                        if (result !== undefined) clientItem = result;
+                                    });
+                                });
+                            })
+                            // configs.fields.parsers.request
+                            .then(function () {
+                                // Parse all fields.
+                                return $q.all(_.map(configs.fields, function (field) {
+                                    // Concat parsing pipe-line.
+                                    return reduce(field.parsers.request, function (parseFn) {
+                                        return $q.when(parseFn(clientItem[field.name], clientItem)).then(function (result) {
+                                            // if parseFn return new value then set that value to clientItem[field.name].
+                                            if (result !== undefined) clientItem[field.name] = result;
                                         });
-                                });
+                                    });
+                                }));
                             })
-                            // Converters.
+                            // configs.schema.request.parsed
                             .then(function () {
-                                // Converters.
-                                _.forEach(self.$$getConvertKeys("json"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    if (value == null) return;
-
-                                    clientItem[keyName] = JSON.stringify(value);
+                                return reduce(configs.schema.request.parsed, function (parseFn) {
+                                    return $q.when(parseFn(clientItem)).then(function (result) {
+                                        // if parseFn return new object then set that object as new clientItem.
+                                        if (result !== undefined) clientItem = result;
+                                    });
                                 });
-                                _.forEach(self.$$getConvertKeys("dateTime"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    if (!_.isDate(value)) return;
-
-                                    clientItem[keyName] = value.toJSON();
-                                });
-                                _.forEach(self.$$getConvertKeys("lookup"), function (keyName) {
-                                    var value = clientItem[keyName];
-                                    if (value == null) return;
-
-                                    // Single lookup.
-                                    if (!_.isArray(value)) {
-                                        clientItem[keyName + "Id"] = value.Id;
-                                        delete clientItem[keyName];
-                                    }
-                                    // Multi lookup
-                                    else {
-                                        clientItem[keyName + "Id"] = {results: _.pluck(value, "Id")};
-                                        delete clientItem[keyName];
-                                    }
-                                });
-                            })
-                            // Schema.
-                            .then(function () {
-                                return $q.when(self.$configs.schema.beforePost(clientItem));
                             })
                             // Return result.
                             .then(function () {
@@ -324,19 +355,25 @@
                                     next: response.data.d["__next"]
                                 });
                             });
-                    },
-                    /**
-                     * Get the converter data by name.
-                     * @param converterName
-                     */
-                    $$getConvertKeys: function (converterName) {
-                        var data = _.get(this, "$configs.fieldConverters." + converterName);
-
-                        if (!data) return [];
-                        if (!_.isArray(data)) return [data];
-                        return data;
                     }
+                    //endregion
                 });
+
+                /**
+                 * Chaining the array with reduce fn (Promise support).
+                 * @param {Array<Function>|*} fnArray - an array of function to reduce.
+                 * @param {Function} customFn - a function which is called with each function in `fnArray` and the
+                 * result of previous action.
+                 * @param {*=} thisArg - object which will be bound to context of `customFn`.
+                 * @return {Promise} - promise which concat all reduced function.
+                 */
+                function reduce(fnArray, customFn, thisArg) {
+                    return _.reduce(fnArray, function (memo, fn) {
+                        return memo.then(function () {
+                            return customFn.apply(thisArg, [fn].concat(_.slice(arguments)));
+                        });
+                    }, $q.when());
+                }
             }
         ]);
-})(wizer, angular);
+})(wizer, angular, _);
